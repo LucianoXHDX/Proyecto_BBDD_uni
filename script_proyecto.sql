@@ -52,6 +52,7 @@ region VARCHAR(40),
 pais VARCHAR(40)
 );
 
+
 -- tabla sede
 CREATE TABLE IF NOT EXISTS sede(
 id_sede INT PRIMARY KEY,
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS sala(
 id_sala INT PRIMARY KEY,
 id_sede INT,
 numero_sala INT,
-adoro_sala INT,
+aforo_sala INT,
 FOREIGN KEY (id_sede) REFERENCES sede(id_sede)
 );
 
@@ -216,6 +217,49 @@ cargo_comite VARCHAR(40),
 PRIMARY KEY (id_comite,rut_participante_comite),
 FOREIGN KEY (rut_participante_comite) REFERENCES participante(rut)
 );
+
+
+
+
+
+-- ingreso de datos de prueba
+-- ciudad(id_ciudad, nombre_ciudad, region, pais)
+INSERT INTO ciudad VALUES (1,'Santiago','Metropolitana','Chile');
+INSERT INTO ciudad VALUES (2,'Valparaiso','Valparaiso','Chile');
+INSERT INTO ciudad VALUES (3,'Concepcion','Biobio','Chile');
+INSERT INTO ciudad VALUES (4,'Antofagasta','Antofagasta','Chile');
+INSERT INTO ciudad VALUES (5,'Iquique','Tarapaca','Chile');
+
+-- sede(id_sede, id_ciudad, nombre_sede, direccion_sede)
+INSERT INTO sede VALUES (1,1,'Centro de Convenciones Santiago','Av. El Bosque 1234, Santiago');
+INSERT INTO sede VALUES (2,2,'Hotel Valparaiso','Calle Principal 567, Valparaiso');
+INSERT INTO sede VALUES (3,3,'Universidad de Concepcion','Av. Universidad 789, Concepcion');
+INSERT INTO sede VALUES (4,4,'Centro Cultural Antofagasta','Calle Cultura 456, Antofagasta');
+INSERT INTO sede VALUES (5,5,'Hotel Iquique','Calle Marina 321, Iquique');
+
+-- sala(id_sala, id_sede, numero_sala, aforo_sala)
+-- agrego 2 salas por sede, con diferentes aforos para tener variedad 
+INSERT INTO sala VALUES (1,1,101,100);
+INSERT INTO sala VALUES (2,1,102,150);
+INSERT INTO sala VALUES (3,2,201,80);
+INSERT INTO sala VALUES (4,2,202,120);
+INSERT INTO sala VALUES (5,3,301,200);
+INSERT INTO sala VALUES (6,3,302,250);
+INSERT INTO sala VALUES (7,4,401,90);
+INSERT INTO sala VALUES (8,4,402,110);
+INSERT INTO sala VALUES (9,5,501,70);
+INSERT INTO sala VALUES (10,5,502,130);
+
+-- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
+-- agrego 8 participantes 2 de cada tipo admin, revisor, estudiante y academico para tener variedad 
+INSERT INTO participante VALUES ('12345678-9','Juan','Perez','1990-01-01','juan.perez@email.com','987654321','Calle Principal 123, Santiago');
+INSERT INTO participante VALUES ('23456789-0','Maria','Gonzalez','1985-05-15','maria.gonzalez@email.com','912345678','Calle Secundaria 456, Valparaiso');	
+INSERT INTO participante VALUES ('34567890-1','Carlos','Lopez','1992-09-30','carlos.lopez@email.com','923456789','Calle Tercera 789, Concepcion');	
+INSERT INTO participante VALUES ('45678901-2','Ana','Martinez','1988-12-20','ana.martinez@email.com','934567890','Calle Cuarta 101, Iquique');
+INSERT INTO participante VALUES ('56789012-3','Luis','Garcia','1995-03-10','luis.garcia@email.com','945678901','Calle Quinta 202, Arica'); 
+INSERT INTO participante VALUES ('67890123-4','Sofia','Rodriguez','1991-07-25','sofia.rodriguez@email.com','956789012','Calle Sexta 303, Punta Arenas');  
+INSERT INTO participante VALUES ('78901234-5','Diego','Fernandez','1987-11-05','diego.fernandez@email.com','967890123','Calle Septima 404, Valdivia');
+INSERT INTO participante VALUES ('89012345-6','Laura','Gomez','1993-02-18','laura.gomez@email.com','978901234','Calle Octava 505, Osorno');
 
 
 
