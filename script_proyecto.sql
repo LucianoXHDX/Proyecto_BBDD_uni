@@ -262,6 +262,29 @@ INSERT INTO participante VALUES ('78901234-5','Diego','Fernandez','1987-11-05','
 INSERT INTO participante VALUES ('89012345-6','Laura','Gomez','1993-02-18','laura.gomez@email.com','978901234','Calle Octava 505, Osorno');
 
 
+-- academico(rut, departamento, universidad, grado_academico)
+INSERT INTO academico VALUES ('12345678-9','Informatica','Universidad de Chile','Doctor');
+INSERT INTO academico VALUES ('23456789-0','Matematica','Pontificia Universidad Catolica','Magister');
+
+-- estudiante(rut, carrera, departamento)
+INSERT INTO estudiante VALUES ('34567890-1','Ingenieria Informatica','Informatica');
+INSERT INTO estudiante VALUES ('45678901-2','Matematica Aplicada','Matematica');
+
+-- revisor(rut, annos_experiencia)
+INSERT INTO revisor VALUES ('56789012-3',5);
+INSERT INTO revisor VALUES ('67890123-4',3);
+
+-- administrador(rut, estado)
+INSERT INTO administrador VALUES ('78901234-5',true);
+INSERT INTO administrador VALUES ('89012345-6',true);
+
+-- tematica(id_tematica, nombre_tematica, descripcion_tematica)
+INSERT INTO tematica VALUES (1,'Inteligencia Artificial','Tematica relacionada con el desarrollo de sistemas inteligentes y aprendizaje automatico');
+INSERT INTO tematica VALUES (2,'Ciencia de Datos','Tematica enfocada en el analisis de grandes volúmenes de datos y extracción de conocimiento');
+INSERT INTO tematica VALUES (3,'Seguridad Informatica','Tematica que aborda la protección de sistemas y datos contra amenazas y ataques');
+INSERT INTO tematica VALUES (4,'Desarrollo de Software','Tematica centrada en las metodologias y herramientas para la creación de software de calidad');	
+INSERT INTO tematica VALUES (5,'Redes de Computadoras','Tematica que trata sobre la interconexión de sistemas y la comunicación de datos a través de redes');	
+
 
 
 
