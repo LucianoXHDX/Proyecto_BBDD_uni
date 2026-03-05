@@ -238,6 +238,12 @@ PRIMARY KEY (id_comite,rut_participante_comite),
 FOREIGN KEY (id_comite) REFERENCES comite_organizador(id_comite),
 FOREIGN KEY (rut_participante_comite) REFERENCES participante(rut)
 );
+-- seccion de procedimientos 
+
+
+
+-- fin seccion de procedimientos
+
 
 -- seccion de trigger 
 
@@ -292,8 +298,37 @@ DELIMITER ;
 
 -- certificado segun las condiciones de asistente o expositor
 
+
+-- fin seccion de trigger
+
+
+
+-- seccion vistas
+-- vista para ver ranking de trabajos segun su puntacion general
+CREATE VIEW ranking_trabajos AS 
+select t.id_trabajo, t.nombre_trabajo, t.descripcion, t.fecha_presentacion, t.hora_presentacion, r.puntacion_general
+from trabajo_academico t
+join revision r on t.id_trabajo = r.id_trabajo
+order by r.puntacion_general desc;
+
+-- vista participantes por evento
+CREATE VIEW participantes_por_evento AS
+SELECT  eve.nombre_evento, p.rut, p.nombre, p.apellido, ins.rol_en_evento
+FROM evento_academico eve
+JOIN inscripcion ins ON eve.id_evento = ins.id_evento
+JOIN participante p ON ins.rut_participante = p.rut
+ORDER BY eve.nombre_evento, p.apellido;
+-- trabajos pendientes de revision
+
+
+
+
+
+-- fin seccion vistas
+
 -- los datos de prueba estan mal hay que revisarlos 
--- ademas faltta mostrar los trigger
+-- ademas faltta mostrar los trigger  
+
 /*
 -- ingreso de datos de prueba
 -- ciudad(id_ciudad, nombre_ciudad, region, pais)
