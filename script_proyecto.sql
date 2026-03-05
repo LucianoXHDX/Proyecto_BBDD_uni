@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS pago(
   fecha_pago DATE,
   medio_pago VARCHAR(80),
   id_comprobante VARCHAR(100),
-  ADD COLUMN estado_pago VARCHAR(20) DEFAULT 'pendiente';
+  estado_pago VARCHAR(20) DEFAULT 'pendiente',
   FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
 );
 
@@ -239,10 +239,62 @@ FOREIGN KEY (id_comite) REFERENCES comite_organizador(id_comite),
 FOREIGN KEY (rut_participante_comite) REFERENCES participante(rut)
 );
 
+-- seccion de trigger 
+
+-- trigger evitar solapamiento en salas 
 
 
 
+DELIMITER //
+CREATE TRIGGER evitar_solapamiento_sala
+BEFORE INSERT ON actividad
+FOR EACH ROW
+BEGIN
+    DECLARE solapamiento INT;
 
+    SELECT COUNT(*) INTO solapamiento
+    FROM actividad
+    WHERE id_sala = NEW.id_sala
+      AND fecha_actividad = NEW.fecha_actividad
+      AND NEW.hora_inicio < hora_fin
+      AND NEW.hora_fin > hora_inicio;
+
+    -- Si encuentra algun solapamiento rechaza la insercion con mensaje de error por pantalla
+    IF solapamiento > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La sala ya tiene una actividad en ese horario, busque otro horario o sala';
+    END IF;
+    -- Si no hay conflicto permite la insercion
+DELIMITER ;
+
+-- trigger para un rol unico por evento
+
+DELIMITER //
+CREATE TRIGGER confirmacion_rol_unico
+BEFORE INSERT ON inscripcion --O SEA ANTES QUE YO META UN DATO A LA INSCRIPCION
+FOR EACH ROW
+BEGIN 
+    DECLARE rol_asignado INT;
+    SELECT COUNT(*) INTO rol_asignado
+    FROM inscripcion
+    WHERE id_evento = NEW.id_evento
+      AND rut_participante = NEW.rut_participante;
+    
+    IF rol_asignado > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El participante ya tiene un rol asignado en este evento, no puede tener mas de un rol por evento';
+    END IF;
+END//
+DELIMITER ;
+
+-- pago antes de confirmar inscripcion
+
+
+-- certificado segun las condiciones de asistente o expositor
+
+-- los datos de prueba estan mal hay que revisarlos 
+-- ademas faltta mostrar los trigger
+/*
 -- ingreso de datos de prueba
 -- ciudad(id_ciudad, nombre_ciudad, region, pais)
 INSERT INTO ciudad VALUES (1,'Santiago','Metropolitana','Chile');
@@ -466,3 +518,4 @@ INSERT INTO miembro_comite VALUES (3, '89012345-6', 'Secretario');
 
 
 -- fin de ingresod de datos
+*/
