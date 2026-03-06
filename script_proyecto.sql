@@ -7,6 +7,7 @@ USE ProyectoEventia;
 -- entidades principales (PARTICIPANTES Y ROLES)
 
 -- tabla participante (entidad base para todos los roles)
+-- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 CREATE TABLE IF NOT EXISTS participante(
     rut VARCHAR(12) PRIMARY KEY,
     nombre VARCHAR(40) NOT NULL,
@@ -112,6 +113,7 @@ CREATE TABLE IF NOT EXISTS sala(
 -- entidades de eventos y temáticas
 
 -- tabla evento_academico
+-- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 CREATE TABLE IF NOT EXISTS evento_academico(
     id_evento INT PRIMARY KEY AUTO_INCREMENT,
     id_sede INT,
@@ -144,6 +146,7 @@ CREATE TABLE IF NOT EXISTS evento_tematica(
 -- inscripción y pago
 
 -- tabla inscripcion
+-- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 CREATE TABLE IF NOT EXISTS inscripcion(
     id_inscripcion INT PRIMARY KEY AUTO_INCREMENT,
     rut_participante VARCHAR(12),
@@ -171,6 +174,7 @@ CREATE TABLE IF NOT EXISTS pago(
 -- trabajos academicos  y revisiones   
 
 -- tabla trabajo_academico
+-- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
 CREATE TABLE IF NOT EXISTS trabajo_academico(
     id_trabajo INT PRIMARY KEY AUTO_INCREMENT,
     id_evento INT,
@@ -203,13 +207,14 @@ CREATE TABLE IF NOT EXISTS autoria(
 );
 
 -- tabla revision (puntacion_general calculada por trigger)
+-- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 CREATE TABLE IF NOT EXISTS revision(
     id_trabajo INT,
     rut_revisor VARCHAR(12),
     originalidad DECIMAL CHECK (originalidad BETWEEN 1 AND 7),
     pertinencia DECIMAL CHECK (pertinencia BETWEEN 1 AND 7),
     claridad DECIMAL CHECK (claridad BETWEEN 1 AND 7), -- nota decimal entre 1 a 7
-    puntacion_general DECIMAL, -- promedio entre las puntuaciones del criterio
+    puntuacion_general DECIMAL, -- promedio entre las puntuaciones del criterio
     comentarios_revision VARCHAR(500),
     PRIMARY KEY (id_trabajo, rut_revisor),
     FOREIGN KEY (id_trabajo) REFERENCES trabajo_academico(id_trabajo),
@@ -229,7 +234,6 @@ CREATE TABLE IF NOT EXISTS actividad(
     fecha_actividad DATE,
     hora_inicio TIME,
     hora_fin TIME,
-    capacidad_maxima INT,
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
     FOREIGN KEY (id_sala) REFERENCES sala(id_sala)
 );
@@ -305,6 +309,7 @@ BEGIN
       AND fecha_actividad = NEW.fecha_actividad
       AND NEW.hora_inicio < hora_fin
       AND NEW.hora_fin > hora_inicio;
+    -- si encuentra algun solapamiento rechaza la inscripcion con mensaje de error por pantalla
     
     IF solapamiento > 0 THEN
         SIGNAL SQLSTATE '45000'
@@ -316,12 +321,12 @@ DELIMITER ;
 -- Trigger 2: Confirmar rol único por evento (un participante, un rol por evento)
 DELIMITER //
 CREATE TRIGGER confirmacion_rol_unico
-BEFORE INSERT ON inscripcion
+BEFORE INSERT ON inscripcion -- antes que se meta un dato a la inscripción
 FOR EACH ROW
 BEGIN 
     DECLARE rol_asignado INT;
     
-    SELECT COUNT(*) INTO rol_asignado
+    SELECT COUNT(*) INTO rol_asignado	
     FROM inscripcion
     WHERE id_evento = NEW.id_evento
       AND rut_participante = NEW.rut_participante;
@@ -333,100 +338,100 @@ BEGIN
 END//
 DELIMITER ;
 
--- Trigger 3: Calcular puntación general en revisión (desnormalización controlada)
+-- Trigger 3: Calcular puntación general en revisión
+-- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 DELIMITER //
-CREATE TRIGGER calcular_puntacion_general
+CREATE TRIGGER calcular_puntuacion_general
 BEFORE INSERT ON revision
 FOR EACH ROW
 BEGIN
-    SET NEW.puntacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
+    SET NEW.puntuacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
 END//
 DELIMITER ;
 
 -- Trigger 4: Actualizar puntación general si se modifica una revisión
 DELIMITER //
-CREATE TRIGGER actualizar_puntacion_general
+CREATE TRIGGER actualizar_puntuacion_general
 BEFORE UPDATE ON revision
 FOR EACH ROW
 BEGIN
-    SET NEW.puntacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
+    SET NEW.puntuacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
 END//
 DELIMITER ;
 
 -- vistas
 
--- vista 1: Ranking de trabajos según puntación general
-CREATE OR REPLACE VIEW ranking_trabajos AS 
-SELECT 
-    t.id_trabajo, 
-    t.nombre_trabajo, 
-    t.descripcion, 
-    t.fecha_presentacion, 
-    t.hora_presentacion, 
-    t.estado_revision,
-    AVG(r.puntacion_general) AS puntacion_promedio,
-    COUNT(r.rut_revisor) AS cantidad_revisores
+-- vista 1: Ranking de trabajos según puntación general, se usan las tablas:
+	-- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
+	-- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
+CREATE VIEW ranking_trabajos AS
+SELECT t.id_trabajo, t.nombre_trabajo, t.descripcion, t.fecha_presentacion, r.puntuacion_general
 FROM trabajo_academico t
 JOIN revision r ON t.id_trabajo = r.id_trabajo
-GROUP BY t.id_trabajo
-ORDER BY puntacion_promedio DESC;
+ORDER BY r.puntuacion_general desc;
+
 
 -- vista 2: Participantes por evento con detalles
-CREATE OR REPLACE VIEW participantes_por_evento AS
+-- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
+-- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
+-- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+CREATE VIEW participantes_por_evento AS
 SELECT  
-    eve.id_evento,
-    eve.nombre_evento, 
-    p.rut, 
-    p.nombre, 
-    p.apellido, 
-    p.email,
-    ins.rol_en_evento,
-    ins.estado_inscripcion
+    eve.id_evento, eve.nombre_evento, p.rut,  p.nombre,  p.apellido,  p.email, ins.rol_en_evento, ins.estado_inscripcion
 FROM evento_academico eve
 JOIN inscripcion ins ON eve.id_evento = ins.id_evento
 JOIN participante p ON ins.rut_participante = p.rut
 ORDER BY eve.nombre_evento, p.apellido;
 
 -- vista 3: Trabajos pendientes de revisión
-CREATE OR REPLACE VIEW trabajos_pendientes_revision AS
+-- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
+-- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+-- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
+CREATE VIEW trabajos_pendientes_revision AS
 SELECT 
-    t.id_trabajo,
-    t.nombre_trabajo,
-    e.nombre_evento,
-    t.estado_revision,
-    COUNT(r.rut_revisor) AS revisiones_completadas
+    t.id_trabajo, t.nombre_trabajo, e.nombre_evento, r.rut_revisor AS revisor, t.estado_revision
 FROM trabajo_academico t
 JOIN evento_academico e ON t.id_evento = e.id_evento
 LEFT JOIN revision r ON t.id_trabajo = r.id_trabajo
 WHERE t.estado_revision = 'En revision'
-GROUP BY t.id_trabajo
 ORDER BY e.nombre_evento, t.nombre_trabajo;
 
--- vista 4: Asistencia por actividad
-CREATE OR REPLACE VIEW asistencia_por_actividad AS
+-- vista 4: asistencia evento
+-- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+-- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
+-- sede(id_sede, id_ciuydad, nombre_sede, direccion_sede, cantidad_salas, aforo_sede)
+CREATE VIEW asistencia_evento AS
+SELECT
+	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, COUNT(i.rut_participante) AS inscritos, 
+    SUM(CASE WHEN i.estado_inscripcion = 'pendiente' THEN 0 ELSE 1 END) AS asistencia_confirmada,
+    s.aforo_sede AS capacidad_máxima
+    
+FROM evento_academico eve
+JOIN inscripcion i ON eve.id_evento = i.id_evento
+JOIN sede s ON eve.id_sede = s.id_sede
+GROUP BY eve.id_evento;
+
+-- vista 5: Asistencia por actividad
+-- sala(id_sala, id_sede, numero_sala, aforo_sala)
+CREATE VIEW asistencia_por_actividad AS
 SELECT 
-    a.id_actividad,
-    a.nombre_actividad,
-    a.tipo_actividad,
-    a.fecha_actividad,
-    COUNT(ia.rut_participante) AS inscritos,
-    SUM(CASE WHEN ia.asistencia_confirmada = TRUE THEN 1 ELSE 0 END) AS asistentes_reales,
-    a.capacidad_maxima
+    a.id_actividad, a.nombre_actividad, a.tipo_actividad, a.fecha_actividad, COUNT(ia.rut_participante) AS inscritos,
+    SUM(CASE WHEN ia.asistencia_confirmada = TRUE THEN 1 ELSE 0 END) AS asistencia_confirmada,
+    s.aforo_sala
+    
 FROM actividad a
 LEFT JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
+JOIN sala s ON a.id_sala = s.id_sala
 GROUP BY a.id_actividad
 ORDER BY a.fecha_actividad;
 
--- vista 5: Certificados emitidos
-CREATE OR REPLACE VIEW certificados_emitidos AS
+-- vista 6: Certificados emitidos
+-- certificado(id_certificado, rut_certificado
+-- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+-- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
+CREATE VIEW certificados_emitidos AS
 SELECT 
-    c.id_certificado,
-    c.tipo_certificado,
-    p.nombre,
-    p.apellido,
-    e.nombre_evento,
-    c.fecha_emision,
-    c.codigo_verificacion
+    c.id_certificado, c.tipo_certificado, p.nombre, p.apellido, e.nombre_evento, c.fecha_emision, c.codigo_verificacion
 FROM certificado c
 JOIN participante p ON c.rut_certificado = p.rut
 JOIN evento_academico e ON c.id_evento = e.id_evento
