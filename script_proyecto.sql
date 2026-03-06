@@ -1,17 +1,10 @@
--- ============================================================================
--- PROYECTO EVENTIA - BASE DE DATOS PARA GESTIÓN DE EVENTOS ACADÉMICOS
--- ============================================================================
--- Versión: 2.0 (Normalizada BCNF con ajustes)
--- Autor: Equipo de Diseño de Base de Datos
--- ============================================================================
-
+-- crear base de datos y usarla
 DROP DATABASE IF EXISTS ProyectoEventia;
 CREATE DATABASE IF NOT EXISTS ProyectoEventia;
 USE ProyectoEventia;
 
--- ============================================================================
--- SECCIÓN 1: ENTIDADES BASE (PARTICIPANTES Y ROLES)
--- ============================================================================
+
+-- entidades principales (PARTICIPANTES Y ROLES)
 
 -- tabla participante (entidad base para todos los roles)
 CREATE TABLE IF NOT EXISTS participante(
@@ -24,14 +17,14 @@ CREATE TABLE IF NOT EXISTS participante(
     direccion VARCHAR(80)
 );
 
--- tabla universidad (NUEVA - normalización)
+-- tabla universidad (nueva)
 CREATE TABLE IF NOT EXISTS universidad(
     id_universidad INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(80) NOT NULL,
     pais VARCHAR(40) DEFAULT 'Chile'
 );
 
--- tabla departamento (NUEVA - normalización)
+-- tabla departamento (nueva)
 CREATE TABLE IF NOT EXISTS departamento(
     id_departamento INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(40) NOT NULL,
@@ -40,7 +33,7 @@ CREATE TABLE IF NOT EXISTS departamento(
     UNIQUE(nombre, id_universidad)
 );
 
--- tabla carrera (NUEVA - normalización)
+-- tabla carrera (nueva)
 CREATE TABLE IF NOT EXISTS carrera(
     id_carrera INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50) NOT NULL,
@@ -84,11 +77,9 @@ CREATE TABLE IF NOT EXISTS administrador(
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
 
--- ============================================================================
--- SECCIÓN 2: ENTIDADES GEOGRÁFICAS Y DE INFRAESTRUCTURA
--- ============================================================================
+-- entidades geográficas y de sedes
 
--- tabla ciudad (region y pais como atributos - scope local)
+-- tabla ciudad
 CREATE TABLE IF NOT EXISTS ciudad(
     id_ciudad INT PRIMARY KEY AUTO_INCREMENT,
     nombre_ciudad VARCHAR(40) NOT NULL,
@@ -118,9 +109,7 @@ CREATE TABLE IF NOT EXISTS sala(
     UNIQUE(id_sede, numero_sala)
 );
 
--- ============================================================================
--- SECCIÓN 3: ENTIDADES DE EVENTOS Y TEMÁTICAS
--- ============================================================================
+-- entidades de eventos y temáticas
 
 -- tabla evento_academico
 CREATE TABLE IF NOT EXISTS evento_academico(
@@ -153,9 +142,7 @@ CREATE TABLE IF NOT EXISTS evento_tematica(
     FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
--- ============================================================================
--- SECCIÓN 4: INSCRIPCIÓN Y PAGO
--- ============================================================================
+-- inscripción y pago
 
 -- tabla inscripcion (surrogate PK + UNIQUE para regla de negocio)
 CREATE TABLE IF NOT EXISTS inscripcion(
@@ -182,9 +169,7 @@ CREATE TABLE IF NOT EXISTS pago(
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
 );
 
--- ============================================================================
--- SECCIÓN 5: TRABAJOS ACADÉMICOS Y REVISIÓN
--- ============================================================================
+-- trabajos academicos  y revisiones   
 
 -- tabla trabajo_academico
 CREATE TABLE IF NOT EXISTS trabajo_academico(
@@ -232,10 +217,8 @@ CREATE TABLE IF NOT EXISTS revision(
     FOREIGN KEY (rut_revisor) REFERENCES revisor(rut)
 );
 
--- ============================================================================
--- SECCIÓN 6: ACTIVIDADES Y ASISTENCIA
--- ============================================================================
 
+-- actividades y asistencia
 -- tabla actividad (con sala específica)
 CREATE TABLE IF NOT EXISTS actividad(
     id_actividad INT PRIMARY KEY AUTO_INCREMENT,
@@ -253,7 +236,7 @@ CREATE TABLE IF NOT EXISTS actividad(
     CHECK (hora_fin > hora_inicio)
 );
 
--- tabla inscripcion_actividad (vinculada a inscripcion padre - Opción A)
+-- tabla inscripcion_actividad (vinculada a inscripcion)
 CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     id_inscripcion INT,
     id_actividad INT,
@@ -268,11 +251,9 @@ CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     FOREIGN KEY (rut_participante) REFERENCES participante(rut)
 );
 
--- ============================================================================
--- SECCIÓN 7: CERTIFICADOS Y COMITÉ
--- ============================================================================
+-- certificados y comité
 
--- tabla certificado (tabla única con discriminador - Opción A)
+-- tabla certificado
 CREATE TABLE IF NOT EXISTS certificado(
     id_certificado INT PRIMARY KEY AUTO_INCREMENT,
     rut_certificado VARCHAR(12),
@@ -311,9 +292,7 @@ CREATE TABLE IF NOT EXISTS miembro_comite(
     FOREIGN KEY (rut_participante_comite) REFERENCES participante(rut)
 );
 
--- ============================================================================
--- SECCIÓN 8: TRIGGERS
--- ============================================================================
+-- triggers
 
 -- Trigger 1: Evitar solapamiento de salas en actividades
 DELIMITER //
@@ -377,11 +356,9 @@ BEGIN
 END//
 DELIMITER ;
 
--- ============================================================================
--- SECCIÓN 9: VISTAS
--- ============================================================================
+-- vistas
 
--- Vista 1: Ranking de trabajos según puntación general
+-- vista 1: Ranking de trabajos según puntación general
 CREATE OR REPLACE VIEW ranking_trabajos AS 
 SELECT 
     t.id_trabajo, 
@@ -397,7 +374,7 @@ JOIN revision r ON t.id_trabajo = r.id_trabajo
 GROUP BY t.id_trabajo
 ORDER BY puntacion_promedio DESC;
 
--- Vista 2: Participantes por evento con detalles
+-- vista 2: Participantes por evento con detalles
 CREATE OR REPLACE VIEW participantes_por_evento AS
 SELECT  
     eve.id_evento,
@@ -413,7 +390,7 @@ JOIN inscripcion ins ON eve.id_evento = ins.id_evento
 JOIN participante p ON ins.rut_participante = p.rut
 ORDER BY eve.nombre_evento, p.apellido;
 
--- Vista 3: Trabajos pendientes de revisión
+-- vista 3: Trabajos pendientes de revisión
 CREATE OR REPLACE VIEW trabajos_pendientes_revision AS
 SELECT 
     t.id_trabajo,
@@ -428,7 +405,7 @@ WHERE t.estado_revision = 'En revision'
 GROUP BY t.id_trabajo
 ORDER BY e.nombre_evento, t.nombre_trabajo;
 
--- Vista 4: Asistencia por actividad
+-- vista 4: Asistencia por actividad
 CREATE OR REPLACE VIEW asistencia_por_actividad AS
 SELECT 
     a.id_actividad,
@@ -443,7 +420,7 @@ LEFT JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
 GROUP BY a.id_actividad
 ORDER BY a.fecha_actividad;
 
--- Vista 5: Certificados emitidos
+-- vista 5: Certificados emitidos
 CREATE OR REPLACE VIEW certificados_emitidos AS
 SELECT 
     c.id_certificado,
@@ -458,9 +435,7 @@ JOIN participante p ON c.rut_certificado = p.rut
 JOIN evento_academico e ON c.id_evento = e.id_evento
 ORDER BY c.fecha_emision DESC;
 
--- ============================================================================
--- SECCIÓN 10: DATOS DE PRUEBA
--- ============================================================================
+-- DATOS DE PRUEBA
 /*
 -- Universidad
 INSERT INTO universidad VALUES 
