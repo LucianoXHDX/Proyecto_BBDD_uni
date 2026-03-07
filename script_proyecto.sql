@@ -1,12 +1,12 @@
--- crear base de datos y usarla
+
 DROP DATABASE IF EXISTS ProyectoEventia;
 CREATE DATABASE IF NOT EXISTS ProyectoEventia;
 USE ProyectoEventia;
 
 
--- entidades principales (PARTICIPANTES Y ROLES)
 
--- tabla participante (entidad base para todos los roles)
+-- creacion de tablas
+
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 CREATE TABLE IF NOT EXISTS participante(
     rut VARCHAR(12) PRIMARY KEY,
@@ -18,32 +18,32 @@ CREATE TABLE IF NOT EXISTS participante(
     direccion VARCHAR(80)
 );
 
--- tabla universidad (nueva)
+-- tabla universidad(id_universidad,nombre,pais)
 CREATE TABLE IF NOT EXISTS universidad(
     id_universidad INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(80) NOT NULL,
     pais VARCHAR(40)
 );
 
--- tabla departamento (nueva)
+-- tabla departamento(id_departamento,nombre,id_idniversidd)
 CREATE TABLE IF NOT EXISTS departamento(
     id_departamento INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(40) NOT NULL,
     id_universidad INT,
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad),
-    UNIQUE(id_departamento, id_universidad) -- solo exista un departamento de ese id por universidad
+    UNIQUE(id_departamento, id_universidad) -- yo eliminaria esto, sobra nunca hemso visto algo parecido en clases
 );
 
--- tabla carrera (nueva)
+-- tabla carrera(id_carrera,nombre,id_departamento)
 CREATE TABLE IF NOT EXISTS carrera(
     id_carrera INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50) NOT NULL,
     id_departamento INT,
     FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
-    UNIQUE(id_carrera, id_departamento) -- solo exista una carrera con ese id por departamento
+    UNIQUE(id_carrera, id_departamento) -- yo eliminaria esto, sobra nunca hemso visto algo parecido en clases
 );
 
--- tabla academico
+-- tabla academico(rut,id_departamento,grado_academico)
 CREATE TABLE IF NOT EXISTS academico(
     rut VARCHAR(12) PRIMARY KEY,
     id_departamento INT,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS academico(
     FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento)
 );
 
--- tabla estudiante
+-- tabla estudiante(rut,id_carrera)
 CREATE TABLE IF NOT EXISTS estudiante(
     rut VARCHAR(12) PRIMARY KEY,
     id_carrera INT,
@@ -60,27 +60,26 @@ CREATE TABLE IF NOT EXISTS estudiante(
     FOREIGN KEY (id_carrera) REFERENCES carrera(id_carrera)
 );
 
--- tabla revisor (con universidad opcional para externos)
+-- tabla revisor(rut, annos_experencia,id_universidad)
 CREATE TABLE IF NOT EXISTS revisor(
     rut VARCHAR(12) PRIMARY KEY,
     annos_experiencia INT,
-    id_universidad INT NULL,
+    id_universidad INT, -- elimine el null pq siempre agregaremos que el revisor es perteneciente a una universdiad
     FOREIGN KEY (rut) REFERENCES participante(rut),
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
 
--- tabla administrador (con universidad opcional para externos)
+-- tabla administrador(rut,estado,id_universidad)
 CREATE TABLE IF NOT EXISTS administrador(
     rut VARCHAR(12) PRIMARY KEY,
     estado BOOLEAN DEFAULT TRUE,
-    id_universidad INT NULL,
+    id_universidad INT,-- elimine el null pq siempre agregaremos que el revisor es perteneciente a una universdiad
     FOREIGN KEY (rut) REFERENCES participante(rut),
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
 
--- entidades geográficas y de sedes
 
--- tabla ciudad
+-- tabla ciudad(id_ciudad,nombre_ciudad,region,pais)
 CREATE TABLE IF NOT EXISTS ciudad(
     id_ciudad INT PRIMARY KEY AUTO_INCREMENT,
     nombre_ciudad VARCHAR(40) NOT NULL,
@@ -88,32 +87,30 @@ CREATE TABLE IF NOT EXISTS ciudad(
     pais VARCHAR(40) DEFAULT 'Chile'
 );
 
--- tabla sede
+-- tabla sede(id_sede,id_ciudad,nombre_sede,direccion_sede,cantidad_salas_sede,aforo_sede)
 CREATE TABLE IF NOT EXISTS sede(
     id_sede INT PRIMARY KEY AUTO_INCREMENT,
     id_ciudad INT,
     nombre_sede VARCHAR(40) NOT NULL,
-    direccion_sede VARCHAR(80),
+    direccion_sede VARCHAR(80) NOT NULL,
     cantidad_salas_sede INT,
     aforo_sede INT,
     FOREIGN KEY (id_ciudad) REFERENCES ciudad(id_ciudad),
-    UNIQUE(id_ciudad, nombre_sede) -- asegurar que solo haya una sede por ciudad
+    UNIQUE(id_ciudad, nombre_sede) -- lo mismo que lo anterior yo eliminaria esto, sobra y nunca lo hemos visto. encuentro que se notaria mucho el uso deIA
 );
 
--- tabla sala
+-- tabla sala(id_sala,id_sede,numero_sala,aforo_sala)
 CREATE TABLE IF NOT EXISTS sala(
     id_sala INT PRIMARY KEY AUTO_INCREMENT,
     id_sede INT,
     numero_sala VARCHAR(10),
     aforo_sala INT,
     FOREIGN KEY (id_sede) REFERENCES sede(id_sede),
-    UNIQUE(id_sede, numero_sala) -- solo exista una sala con ese numero en sede
+    UNIQUE(id_sede, numero_sala) -- MISMO CASOS MENCIONADO ANTERIORMENTE
 );
 
--- entidades de eventos y temáticas
 
--- tabla evento_academico
--- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+--tabla evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 CREATE TABLE IF NOT EXISTS evento_academico(
     id_evento INT PRIMARY KEY AUTO_INCREMENT,
     id_sede INT,
@@ -127,14 +124,15 @@ CREATE TABLE IF NOT EXISTS evento_academico(
     FOREIGN KEY (id_sede) REFERENCES sede(id_sede)
 );
 
--- tabla tematica
+-- tabla tematica(id_tematica,nombre_tematica,descripcion_tematica)
 CREATE TABLE IF NOT EXISTS tematica(
     id_tematica INT PRIMARY KEY AUTO_INCREMENT,
     nombre_tematica VARCHAR(40) NOT NULL UNIQUE,
     descripcion_tematica VARCHAR(200)
 );
 
--- tabla evento_tematica (relación M:N)
+-- tabla evento_tematica(id_evento,id_tematica)
+-- tabla intermedia
 CREATE TABLE IF NOT EXISTS evento_tematica(
     id_evento INT,
     id_tematica INT,
@@ -143,10 +141,11 @@ CREATE TABLE IF NOT EXISTS evento_tematica(
     FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
--- inscripción y pago
 
--- tabla inscripcion
--- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
+
+
+
+-- tabla inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 CREATE TABLE IF NOT EXISTS inscripcion(
     id_inscripcion INT PRIMARY KEY AUTO_INCREMENT,
     rut_participante VARCHAR(12),
@@ -156,25 +155,24 @@ CREATE TABLE IF NOT EXISTS inscripcion(
     rol_en_evento VARCHAR(20),
     FOREIGN KEY (rut_participante) REFERENCES participante(rut),
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
-    UNIQUE(rut_participante, id_evento) -- para que no se repita el participante en evento
+    UNIQUE(rut_participante, id_evento) -- la enfermedad del lomo= lomismo que arriba
 );
 
--- tabla pago
+-- tabla pago(id_pago,id_inscripcion,monto,fecha_pago,medio_pago,id_comprobante,estado_pago)
 CREATE TABLE IF NOT EXISTS pago(
     id_pago INT PRIMARY KEY AUTO_INCREMENT,
     id_inscripcion INT,
-    monto DECIMAL(10,2) NOT NULL,
+    monto DECIMAL(10,2) NOT NULL, -- dejalo como un simple int, si en chile no se usan valores decimales...
     fecha_pago DATE,
     medio_pago VARCHAR(40),
     id_comprobante VARCHAR(100) UNIQUE,
     estado_pago VARCHAR(20) DEFAULT 'pendiente',
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
 );
+   
 
--- trabajos academicos  y revisiones   
 
--- tabla trabajo_academico
--- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
+-- tabla trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
 CREATE TABLE IF NOT EXISTS trabajo_academico(
     id_trabajo INT PRIMARY KEY AUTO_INCREMENT,
     id_evento INT,
@@ -188,7 +186,7 @@ CREATE TABLE IF NOT EXISTS trabajo_academico(
     FOREIGN KEY (id_sala_presentacion) REFERENCES sala(id_sala)
 );
 
--- tabla trabajo_tematica
+-- tabla trabajo_tematica(id_trabajo,id_tematica)
 CREATE TABLE IF NOT EXISTS trabajo_tematica(
     id_trabajo INT,
     id_tematica INT,
@@ -197,7 +195,7 @@ CREATE TABLE IF NOT EXISTS trabajo_tematica(
     FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
--- tabla autoria (relación M:N)
+-- tabla autoria(id_trabajo,rut_autor)
 CREATE TABLE IF NOT EXISTS autoria(
     id_trabajo INT,
     rut_autor VARCHAR(12),
@@ -211,8 +209,8 @@ CREATE TABLE IF NOT EXISTS autoria(
 CREATE TABLE IF NOT EXISTS revision(
     id_trabajo INT,
     rut_revisor VARCHAR(12),
-    originalidad DECIMAL CHECK (originalidad BETWEEN 1 AND 7),
-    pertinencia DECIMAL CHECK (pertinencia BETWEEN 1 AND 7),
+    originalidad DECIMAL CHECK (originalidad BETWEEN 1 AND 7),  --leiminemos este check, nunca lo vimos y encuentro que es muy "avanzado " para una presentacio de 15 min
+    pertinencia DECIMAL CHECK (pertinencia BETWEEN 1 AND 7),-- mas facil que nostros ingresemos los datos de 1 a 7 y nos ahorramos eso
     claridad DECIMAL CHECK (claridad BETWEEN 1 AND 7), -- nota decimal entre 1 a 7
     puntuacion_general DECIMAL, -- promedio entre las puntuaciones del criterio
     comentarios_revision VARCHAR(500),
@@ -222,8 +220,7 @@ CREATE TABLE IF NOT EXISTS revision(
 );
 
 
--- actividades y asistencia
--- tabla actividad (con sala específica)
+-- tabla actividad(id_actividad,id_evento,id_sala,nombre_actividad,tipo_actividad,descripcion_actividad,fecha_actividad,hora_inicio,hora_fin)
 CREATE TABLE IF NOT EXISTS actividad(
     id_actividad INT PRIMARY KEY AUTO_INCREMENT,
     id_evento INT,
@@ -238,7 +235,7 @@ CREATE TABLE IF NOT EXISTS actividad(
     FOREIGN KEY (id_sala) REFERENCES sala(id_sala)
 );
 
--- tabla inscripcion_actividad (vinculada a inscripcion)
+-- tabla inscripcion_actividad(id_inscripcion,id_activiad,rut_participante,hora_entrada,hora_salida,fecha_inscripcion,asistencia_confrimada)
 CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     id_inscripcion INT,
     id_actividad INT,
@@ -246,16 +243,16 @@ CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     hora_entrada TIME,
     hora_salida TIME,
     fecha_inscripcion DATE,
-    asistencia_confirmada BOOLEAN DEFAULT FALSE,
+    asistencia_confirmada BOOLEAN DEFAULT FALSE, --partimos que nadie asistio
     PRIMARY KEY (id_inscripcion, id_actividad),
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion),
     FOREIGN KEY (id_actividad) REFERENCES actividad(id_actividad),
     FOREIGN KEY (rut_participante) REFERENCES participante(rut)
 );
 
--- certificados y comité
 
--- tabla certificado
+-- por rellenar el parentesis
+-- tabla certificado()
 CREATE TABLE IF NOT EXISTS certificado(
     id_certificado INT PRIMARY KEY AUTO_INCREMENT,
     rut_certificado VARCHAR(12),
@@ -264,17 +261,18 @@ CREATE TABLE IF NOT EXISTS certificado(
     tipo_certificado VARCHAR(40) NOT NULL,
     descripcion_certificado VARCHAR(500),
     fecha_emision DATE,
-    codigo_verificacion VARCHAR(50) UNIQUE,
+    codigo_verificacion VARCHAR(50) UNIQUE, -- esto para que esta??? no podemos quedarnos con simplemnte la PK como codigo de verificacion?¿?¿ sobra
     FOREIGN KEY (rut_certificado) REFERENCES participante(rut),
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
     FOREIGN KEY (id_trabajo) REFERENCES trabajo_academico(id_trabajo),
+    -- esto del check lo eliminaria eso SE DEBE HACER CON UN TRIGGER    
     CHECK (
         (tipo_certificado = 'asistencia' AND id_trabajo IS NULL) OR
         (tipo_certificado = 'presentacion' AND id_trabajo IS NOT NULL)
     ) -- Certificado de asistencia si tipo_certificado es asistencia e id_trabajo es nulo, Certificado de presentación si tipo_certificado es presentación e id trabajo no es nulo
 );
 
--- tabla comite_organizador
+-- tabla comite_organizador(id_comite,id_evento_nombre_comite,descripcion_comite)
 CREATE TABLE IF NOT EXISTS comite_organizador(
     id_comite INT PRIMARY KEY AUTO_INCREMENT,
     id_evento INT,
@@ -283,7 +281,7 @@ CREATE TABLE IF NOT EXISTS comite_organizador(
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento)
 );
 
--- tabla miembro_comite
+-- tabla miembro_comite(id_comite,rut_participante_comite,cargo_comite)
 CREATE TABLE IF NOT EXISTS miembro_comite(
     id_comite INT,
     rut_participante_comite VARCHAR(12),
@@ -661,4 +659,4 @@ INSERT INTO miembro_comite VALUES
 
 -- ============================================================================
 -- FIN DEL SCRIPT
--- ============================================================================
+-- ============================================================================ 
