@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS miembro_comite(
 
 -- triggers
 
--- Trigger 1: Evitar solapamiento de salas en actividades
+-- Trigger 1: evitar solapamiento de salas en actividades
 DELIMITER //
 CREATE TRIGGER evitar_solapamiento_sala
 BEFORE INSERT ON actividad
@@ -316,7 +316,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Trigger 2: Confirmar rol único por evento (un participante, un rol por evento)
+-- Trigger 2: confirmar rol unico por evento 
 DELIMITER //
 CREATE TRIGGER confirmacion_rol_unico
 BEFORE INSERT ON inscripcion -- antes que se meta un dato a la inscripción
@@ -331,11 +331,12 @@ BEGIN
     
     IF rol_asignado > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El participante ya tiene un rol asignado en este evento, no puede tener más de un rol por evento';
+        SET MESSAGE_TEXT = 'El participante ya tiene un rol asignado en este evento, no puede tener más de un rol por evento o ya fue ingresado';
     END IF;
 END//
 DELIMITER ;
 
+-- eliminar trigger 3 o hacerlo de alguna forma vista...
 -- Trigger 3: Calcular puntación general en revisión
 -- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 DELIMITER //
@@ -347,6 +348,7 @@ BEGIN
 END//
 DELIMITER ;
 
+-- eliminar trigger 4 no deberia modificarse alguna revisio¿?¿?¿ en nigun caso
 -- Trigger 4: Actualizar puntación general si se modifica una revisión
 DELIMITER //
 CREATE TRIGGER actualizar_puntuacion_general
@@ -368,7 +370,7 @@ FROM trabajo_academico t
 JOIN revision r ON t.id_trabajo = r.id_trabajo
 ORDER BY r.puntuacion_general desc;
 
-
+-- tal ves pondria solo que se vea el nombre y apellido tal ves email, el resto sobra
 -- vista 2: Participantes por evento con detalles
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
@@ -393,7 +395,7 @@ JOIN evento_academico e ON t.id_evento = e.id_evento
 LEFT JOIN revision r ON t.id_trabajo = r.id_trabajo
 WHERE t.estado_revision = 'En revision'
 ORDER BY e.nombre_evento, t.nombre_trabajo;
-
+-- yo el 4 no lo entiendo como funciona no podria programarlo, tal vez no contar, si no ver. ademas hay formas de contar algun atributo pero enseñadas por la profe usaria eso
 -- vista 4: asistencia evento
 -- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
@@ -403,6 +405,7 @@ SELECT
 	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, COUNT(i.rut_participante) AS inscritos, 
     SUM(CASE WHEN i.estado_inscripcion = 'pendiente' THEN 0 ELSE 1 END) AS asistencia_confirmada,
     s.aforo_sede AS capacidad_máxima
+    
     
 FROM evento_academico eve
 JOIN inscripcion i ON eve.id_evento = i.id_evento
@@ -418,6 +421,7 @@ SELECT
     s.aforo_sala
     
 FROM actividad a
+-- que hace un left join?? solo nos enseñaron join o natural join
 LEFT JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
 JOIN sala s ON a.id_sala = s.id_sala
 GROUP BY a.id_actividad
