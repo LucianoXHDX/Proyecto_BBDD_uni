@@ -30,8 +30,7 @@ CREATE TABLE IF NOT EXISTS departamento(
     id_departamento INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(40) NOT NULL,
     id_universidad INT,
-    FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad),
-    UNIQUE(id_departamento, id_universidad) -- yo eliminaria esto, sobra nunca hemso visto algo parecido en clases
+    FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
 
 -- tabla carrera(id_carrera,nombre,id_departamento)
@@ -39,8 +38,7 @@ CREATE TABLE IF NOT EXISTS carrera(
     id_carrera INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50) NOT NULL,
     id_departamento INT,
-    FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
-    UNIQUE(id_carrera, id_departamento) -- yo eliminaria esto, sobra nunca hemso visto algo parecido en clases
+    FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento)
 );
 
 -- tabla academico(rut,id_departamento,grado_academico)
@@ -72,7 +70,7 @@ CREATE TABLE IF NOT EXISTS revisor(
 -- tabla administrador(rut,estado,id_universidad)
 CREATE TABLE IF NOT EXISTS administrador(
     rut VARCHAR(12) PRIMARY KEY,
-    estado BOOLEAN DEFAULT TRUE,
+    estado BOOLEAN DEFAULT TRUE, -- estado de qué? asfhjaksf lo borramos?
     id_universidad INT,-- elimine el null pq siempre agregaremos que el revisor es perteneciente a una universdiad
     FOREIGN KEY (rut) REFERENCES participante(rut),
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
@@ -92,11 +90,10 @@ CREATE TABLE IF NOT EXISTS sede(
     id_sede INT PRIMARY KEY AUTO_INCREMENT,
     id_ciudad INT,
     nombre_sede VARCHAR(40) NOT NULL,
-    direccion_sede VARCHAR(80) NOT NULL,
-    cantidad_salas_sede INT,
-    aforo_sede INT,
-    FOREIGN KEY (id_ciudad) REFERENCES ciudad(id_ciudad),
-    UNIQUE(id_ciudad, nombre_sede) -- lo mismo que lo anterior yo eliminaria esto, sobra y nunca lo hemos visto. encuentro que se notaria mucho el uso deIA
+    direccion_sede VARCHAR(80) NOT NULL, -- las direcciones las deberíamos cambiar a formato como 'calle' 'número', o lo dejamos así nomas?
+    cantidad_salas_sede INT, -- con un trigger se definirá esto?
+    aforo_sede INT,			-- esto también?
+    FOREIGN KEY (id_ciudad) REFERENCES ciudad(id_ciudad)
 );
 
 -- tabla sala(id_sala,id_sede,numero_sala,aforo_sala)
@@ -105,19 +102,18 @@ CREATE TABLE IF NOT EXISTS sala(
     id_sede INT,
     numero_sala VARCHAR(10),
     aforo_sala INT,
-    FOREIGN KEY (id_sede) REFERENCES sede(id_sede),
-    UNIQUE(id_sede, numero_sala) -- MISMO CASOS MENCIONADO ANTERIORMENTE
+    FOREIGN KEY (id_sede) REFERENCES sede(id_sede)
 );
 
 
---tabla evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
+-- tabla evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 CREATE TABLE IF NOT EXISTS evento_academico(
     id_evento INT PRIMARY KEY AUTO_INCREMENT,
     id_sede INT,
     nombre_evento VARCHAR(100) NOT NULL,
     descripcion_evento VARCHAR(500),
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL,
+    fecha_fin DATE NOT NULL, -- si lo quitamos por flojera nomas?
     rut_creador VARCHAR(12),
     estado_evento VARCHAR(20) DEFAULT 'activo',
     FOREIGN KEY (rut_creador) REFERENCES administrador(rut),
@@ -141,10 +137,6 @@ CREATE TABLE IF NOT EXISTS evento_tematica(
     FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
-
-
-
-
 -- tabla inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 CREATE TABLE IF NOT EXISTS inscripcion(
     id_inscripcion INT PRIMARY KEY AUTO_INCREMENT,
@@ -154,18 +146,17 @@ CREATE TABLE IF NOT EXISTS inscripcion(
     estado_inscripcion VARCHAR(20) DEFAULT 'pendiente',
     rol_en_evento VARCHAR(20),
     FOREIGN KEY (rut_participante) REFERENCES participante(rut),
-    FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
-    UNIQUE(rut_participante, id_evento) -- la enfermedad del lomo= lomismo que arriba
+    FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento)
 );
 
 -- tabla pago(id_pago,id_inscripcion,monto,fecha_pago,medio_pago,id_comprobante,estado_pago)
 CREATE TABLE IF NOT EXISTS pago(
     id_pago INT PRIMARY KEY AUTO_INCREMENT,
     id_inscripcion INT,
-    monto DECIMAL(10,2) NOT NULL, -- dejalo como un simple int, si en chile no se usan valores decimales...
+    monto INT,
     fecha_pago DATE,
     medio_pago VARCHAR(40),
-    id_comprobante VARCHAR(100) UNIQUE,
+    id_comprobante VARCHAR(100) UNIQUE, -- quitamos esto?
     estado_pago VARCHAR(20) DEFAULT 'pendiente',
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
 );
@@ -209,9 +200,9 @@ CREATE TABLE IF NOT EXISTS autoria(
 CREATE TABLE IF NOT EXISTS revision(
     id_trabajo INT,
     rut_revisor VARCHAR(12),
-    originalidad DECIMAL CHECK (originalidad BETWEEN 1 AND 7),  --leiminemos este check, nunca lo vimos y encuentro que es muy "avanzado " para una presentacio de 15 min
-    pertinencia DECIMAL CHECK (pertinencia BETWEEN 1 AND 7),-- mas facil que nostros ingresemos los datos de 1 a 7 y nos ahorramos eso
-    claridad DECIMAL CHECK (claridad BETWEEN 1 AND 7), -- nota decimal entre 1 a 7
+    originalidad DECIMAL,
+    pertinencia DECIMAL,
+    claridad DECIMAL, -- nota decimal entre 1 a 7
     puntuacion_general DECIMAL, -- promedio entre las puntuaciones del criterio
     comentarios_revision VARCHAR(500),
     PRIMARY KEY (id_trabajo, rut_revisor),
@@ -230,7 +221,7 @@ CREATE TABLE IF NOT EXISTS actividad(
     descripcion_actividad VARCHAR(500),
     fecha_actividad DATE,
     hora_inicio TIME,
-    hora_fin TIME,
+    hora_fin TIME, 	-- sacar la hora de salida también?
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
     FOREIGN KEY (id_sala) REFERENCES sala(id_sala)
 );
@@ -241,9 +232,9 @@ CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     id_actividad INT,
     rut_participante VARCHAR(12),
     hora_entrada TIME,
-    hora_salida TIME,
+    hora_salida TIME,		-- quitar hora salida?
     fecha_inscripcion DATE,
-    asistencia_confirmada BOOLEAN DEFAULT FALSE, --partimos que nadie asistio
+    asistencia_confirmada BOOLEAN DEFAULT FALSE, -- partimos que nadie asistio
     PRIMARY KEY (id_inscripcion, id_actividad),
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion),
     FOREIGN KEY (id_actividad) REFERENCES actividad(id_actividad),
@@ -261,15 +252,9 @@ CREATE TABLE IF NOT EXISTS certificado(
     tipo_certificado VARCHAR(40) NOT NULL,
     descripcion_certificado VARCHAR(500),
     fecha_emision DATE,
-    codigo_verificacion VARCHAR(50) UNIQUE, -- esto para que esta??? no podemos quedarnos con simplemnte la PK como codigo de verificacion?¿?¿ sobra
     FOREIGN KEY (rut_certificado) REFERENCES participante(rut),
     FOREIGN KEY (id_evento) REFERENCES evento_academico(id_evento),
-    FOREIGN KEY (id_trabajo) REFERENCES trabajo_academico(id_trabajo),
-    -- esto del check lo eliminaria eso SE DEBE HACER CON UN TRIGGER    
-    CHECK (
-        (tipo_certificado = 'asistencia' AND id_trabajo IS NULL) OR
-        (tipo_certificado = 'presentacion' AND id_trabajo IS NOT NULL)
-    ) -- Certificado de asistencia si tipo_certificado es asistencia e id_trabajo es nulo, Certificado de presentación si tipo_certificado es presentación e id trabajo no es nulo
+    FOREIGN KEY (id_trabajo) REFERENCES trabajo_academico(id_trabajo)
 );
 
 -- tabla comite_organizador(id_comite,id_evento_nombre_comite,descripcion_comite)
@@ -336,7 +321,6 @@ BEGIN
 END//
 DELIMITER ;
 
--- eliminar trigger 3 o hacerlo de alguna forma vista...
 -- Trigger 3: Calcular puntación general en revisión
 -- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 DELIMITER //
@@ -344,21 +328,53 @@ CREATE TRIGGER calcular_puntuacion_general
 BEFORE INSERT ON revision
 FOR EACH ROW
 BEGIN
-    SET NEW.puntuacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
+    SET NEW.puntuacion_general = ((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
 END//
 DELIMITER ;
 
--- eliminar trigger 4 no deberia modificarse alguna revisio¿?¿?¿ en nigun caso
--- Trigger 4: Actualizar puntación general si se modifica una revisión
-DELIMITER //
-CREATE TRIGGER actualizar_puntuacion_general
-BEFORE UPDATE ON revision
-FOR EACH ROW
+-- Trigger 4: Evitar sobrecupo 
+DELIMITER // 
+
+
+CREATE TRIGGER evitar_sobrecupo
+BEFORE INSERT ON inscripcion_actividad
+FOR EACH ROW 
 BEGIN
-    SET NEW.puntuacion_general = ROUND((NEW.originalidad + NEW.pertinencia + NEW.claridad) / 3.0);
-END//
+    DECLARE v_aforo int;
+    DECLARE v_inscrito int;
+    DECLARE v_id_sala int;
+-- con eso seleciono la sala de la actividad que estoy intentando ingresar
+    select id_sala into v_id_sala
+    from actividad
+    WHERE id_actividad = NEW.id_actividad;
+
+-- ya tengo la sala ahora debo buscar el aforo
+
+    SELECT aforo_sala into v_aforo
+    from sala
+    where id_sala=v_id_sala;
+
+-- ahora en v_aforo tengo la cant de personas, solo debo contar la cant de personas que estan inscritas
+
+
+    SELECT COUNT(*) into v_inscrito
+    from inscripcion_actividad
+    WHERE id_actividad=new.id_actividad;
+
+
+    IF v_inscrito >= v_aforo THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La actividad ha alcanzado su capacidad máxima, no hay cupos disponibles';
+    END IF;
+
+
+END //
 DELIMITER ;
 
+-- trigger 5 validar trabajo academico aceptado
+
+
+-- --------------------------------------
 -- vistas
 
 -- vista 1: Ranking de trabajos según puntación general, se usan las tablas:
@@ -392,21 +408,21 @@ SELECT
     t.id_trabajo, t.nombre_trabajo, e.nombre_evento, r.rut_revisor AS revisor, t.estado_revision
 FROM trabajo_academico t
 JOIN evento_academico e ON t.id_evento = e.id_evento
-LEFT JOIN revision r ON t.id_trabajo = r.id_trabajo
+JOIN revision r ON t.id_trabajo = r.id_trabajo
 WHERE t.estado_revision = 'En revision'
 ORDER BY e.nombre_evento, t.nombre_trabajo;
--- yo el 4 no lo entiendo como funciona no podria programarlo, tal vez no contar, si no ver. ademas hay formas de contar algun atributo pero enseñadas por la profe usaria eso
+
+-- yo el 4 no lo entiendo como funciona no podria programarlo
 -- vista 4: asistencia evento
 -- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 -- sede(id_sede, id_ciuydad, nombre_sede, direccion_sede, cantidad_salas, aforo_sede)
 CREATE VIEW asistencia_evento AS
 SELECT
-	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, COUNT(i.rut_participante) AS inscritos, 
-    SUM(CASE WHEN i.estado_inscripcion = 'pendiente' THEN 0 ELSE 1 END) AS asistencia_confirmada,
+	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, COUNT(i.rut_participante) AS inscritos,
+    -- COUNT(CASE WHEN i.estado_inscripcion = 'pendiente') AS asistencia_confirmada,
     s.aforo_sede AS capacidad_máxima
-    
-    
+
 FROM evento_academico eve
 JOIN inscripcion i ON eve.id_evento = i.id_evento
 JOIN sede s ON eve.id_sede = s.id_sede
@@ -422,7 +438,7 @@ SELECT
     
 FROM actividad a
 -- que hace un left join?? solo nos enseñaron join o natural join
-LEFT JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
+JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
 JOIN sala s ON a.id_sala = s.id_sala
 GROUP BY a.id_actividad
 ORDER BY a.fecha_actividad;
@@ -433,234 +449,129 @@ ORDER BY a.fecha_actividad;
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 CREATE VIEW certificados_emitidos AS
 SELECT 
-    c.id_certificado, c.tipo_certificado, p.nombre, p.apellido, e.nombre_evento, c.fecha_emision, c.codigo_verificacion
+    c.id_certificado, c.tipo_certificado, p.nombre, p.apellido, e.nombre_evento, c.fecha_emision
 FROM certificado c
 JOIN participante p ON c.rut_certificado = p.rut
 JOIN evento_academico e ON c.id_evento = e.id_evento
 ORDER BY c.fecha_emision DESC;
 
--- DATOS DE PRUEBA
-/*
--- Universidad
-INSERT INTO universidad VALUES 
-(1, 'Universidad de Chile', 'Chile'),
-(2, 'Universidad de Santiago de Chile', 'Chile'),
-(3, 'Universidad de Concepción', 'Chile'),
-(4, 'Universidad Católica', 'Chile');
+-- ------------------------------------
+-- datos de prueba 
 
--- Departamento
-INSERT INTO departamento VALUES 
-(1, 'Informática', 1),
-(2, 'Matemática', 1),
-(3, 'Ingeniería', 2),
-(4, 'Ciencias', 3);
+-- ciudad
+INSERT INTO ciudad VALUES (1, 'Santiago', 'Metropolitana', 'Chile');
 
--- Carrera
-INSERT INTO carrera VALUES 
-(1, 'Ingeniería Informática', 1),
-(2, 'Matemática Aplicada', 2),
-(3, 'Ingeniería Civil', 3),
-(4, 'Ciencia de Datos', 1);
+-- universidad
+INSERT INTO universidad VALUES (1, 'USACH', 'Chile');
 
--- Ciudad
-INSERT INTO ciudad VALUES 
-(1, 'Santiago', 'Metropolitana', 'Chile'),
-(2, 'Valparaíso', 'Valparaíso', 'Chile'),
-(3, 'Concepción', 'Biobío', 'Chile'),
-(4, 'Antofagasta', 'Antofagasta', 'Chile'),
-(5, 'Iquique', 'Tarapacá', 'Chile');
+-- departamento
+INSERT INTO departamento VALUES (1, 'Depto Ingeniería', 1);
 
--- Sede
-INSERT INTO sede VALUES 
-(1, 1, 'Centro de Convenciones Santiago', 'Av. El Bosque 1234, Santiago'),
-(2, 2, 'Hotel Valparaíso', 'Calle Principal 567, Valparaíso'),
-(3, 3, 'Universidad de Concepción', 'Av. Universidad 789, Concepción'),
-(4, 4, 'Centro Cultural Antofagasta', 'Calle Cultura 456, Antofagasta'),
-(5, 5, 'Hotel Iquique', 'Calle Marina 321, Iquique');
+-- carrera
+INSERT INTO carrera VALUES (1, 'Ing. Ejecución Informática', 1);
 
--- Sala (2 salas por sede)
-INSERT INTO sala VALUES 
-(1, 1, '101', 100),
-(2, 1, '102', 150),
-(3, 2, '201', 80),
-(4, 2, '202', 120),
-(5, 3, '301', 200),
-(6, 3, '302', 250),
-(7, 4, '401', 90),
-(8, 4, '402', 110),
-(9, 5, '501', 70),
-(10, 5, '502', 130);
-
--- Participante (8 participantes, 2 de cada tipo)
+-- Participantes
 INSERT INTO participante VALUES 
-('12345678-9', 'Juan', 'Pérez', '1990-01-01', 'juan.perez@email.com', '987654321', 'Calle Principal 123, Santiago'),
-('23456789-0', 'María', 'González', '1985-05-15', 'maria.gonzalez@email.com', '912345678', 'Calle Secundaria 456, Valparaíso'),
-('34567890-1', 'Carlos', 'López', '1992-09-30', 'carlos.lopez@email.com', '923456789', 'Calle Tercera 789, Concepción'),
-('45678901-2', 'Ana', 'Martínez', '1988-12-20', 'ana.martinez@email.com', '934567890', 'Calle Cuarta 101, Iquique'),
-('56789012-3', 'Luis', 'García', '1995-03-10', 'luis.garcia@email.com', '945678901', 'Calle Quinta 202, Arica'),
-('67890123-4', 'Sofía', 'Rodríguez', '1991-07-25', 'sofia.rodriguez@email.com', '956789012', 'Calle Sexta 303, Punta Arenas'),
-('78901234-5', 'Diego', 'Fernández', '1987-11-05', 'diego.fernandez@email.com', '967890123', 'Calle Séptima 404, Valdivia'),
-('89012345-6', 'Laura', 'Gómez', '1993-02-18', 'laura.gomez@email.com', '978901234', 'Calle Octava 505, Osorno');
+('20444683-0', 'Emilio', 'Poblete', '2000-06-27', 'emilio.poblete@usach.cl', '+56912345678', 'calle1'),
+('8573283-4', 'Sebastián', 'Reyes', '1961-05-01', 'sebastian.reyes@usach.cl', '+56987654321', 'calle2'),
+('9666240-1', 'Esteban', 'Bichon', '1965-02-12', 'esteban.bichon@usach.cl', '+56911223344', 'calle3'),
+('12421578-3', 'Griselda', 'Ramos', '1972-05-04', 'griselda.ramos@usach.cl', '+56955667788', 'calle4');
 
--- Académico
-INSERT INTO academico VALUES 
-('12345678-9', 1, 'Doctor'),
-('23456789-0', 2, 'Magíster');
+-- estudiante
+INSERT INTO estudiante VALUES ('20444683-0', 1);
 
--- Estudiante
-INSERT INTO estudiante VALUES 
-('34567890-1', 1),
-('45678901-2', 2);
+-- academico
+INSERT INTO academico VALUES ('8573283-4', 1, 'Doctor');
 
--- Revisor
-INSERT INTO revisor VALUES 
-('56789012-3', 5, 1),
-('67890123-4', 3, NULL);
+-- revisor
+INSERT INTO revisor VALUES ('9666240-1', 15, 1);
 
--- Administrador
-INSERT INTO administrador VALUES 
-('78901234-5', TRUE, 1),
-('89012345-6', TRUE, NULL);
+-- administrador
+INSERT INTO administrador VALUES ('12421578-3', TRUE, 1);
 
--- Temática
-INSERT INTO tematica VALUES 
-(1, 'Inteligencia Artificial', 'Temática relacionada con el desarrollo de sistemas inteligentes y aprendizaje automático'),
-(2, 'Ciencia de Datos', 'Temática enfocada en el análisis de grandes volúmenes de datos y extracción de conocimiento'),
-(3, 'Seguridad Informática', 'Temática que aborda la protección de sistemas y datos contra amenazas y ataques'),
-(4, 'Desarrollo de Software', 'Temática centrada en las metodologías y herramientas para la creación de software de calidad'),
-(5, 'Redes de Computadoras', 'Temática que trata sobre la interconexión de sistemas y la comunicación de datos a través de redes');
+-- sede
+INSERT INTO sede VALUES 
+(1, 1, 'sede1', 'dirección ', 5, 500);
 
--- Evento Académico
+-- sala
+INSERT INTO sala VALUES 
+(1, 1, 'A-101', 100),
+(2, 1, 'A-102', 150),
+(3, 1, 'B-201', 80);
+
+-- evento
 INSERT INTO evento_academico VALUES 
-(1, 1, 'Congreso de Informática', 'Evento anual que reúne a expertos en informática', '2024-10-01', '2024-10-03', '78901234-5', 'activo'),
-(2, 2, 'Simposio de Ciencia de Datos', 'Evento dedicado a la presentación de investigaciones en ciencia de datos', '2024-11-15', '2024-11-17', '89012345-6', 'activo'),
-(3, 3, 'Jornada de Seguridad Informática', 'Evento enfocado en estrategias y tecnologías de seguridad', '2024-12-05', '2024-12-07', '78901234-5', 'activo'),
-(4, 4, 'Taller de Desarrollo de Software', 'Evento práctico de capacitación en desarrollo', '2024-09-20', '2024-09-22', '89012345-6', 'activo'),
-(5, 5, 'Conferencia de Redes', 'Evento sobre avances en redes de computadoras', '2024-08-10', '2024-08-12', '78901234-5', 'activo');
+(1, 1, 'Ciberseguridad y memes', 'Descripción evento', '2026-05-12', '2026-05-13', '12421578-3', 'activo');
 
--- Evento Temática
+-- temáticas
+INSERT INTO tematica VALUES
+(1, 'Ciberseguridad', 'Descripción'),
+(2, 'Memes', 'Descripción');
+
+-- evento tematicas
 INSERT INTO evento_tematica VALUES 
-(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4), (4, 5), (5, 5);
+(1, 1), 
+(1, 2);
 
--- Inscripción
+-- inscripciones
 INSERT INTO inscripcion VALUES 
-(1, '12345678-9', 1, '2024-09-01', 'confirmada', 'autor'),
-(2, '23456789-0', 1, '2024-09-02', 'confirmada', 'autor'),
-(3, '34567890-1', 2, '2024-10-01', 'confirmada', 'asistente'),
-(4, '45678901-2', 2, '2024-10-02', 'confirmada', 'asistente'),
-(5, '56789012-3', 3, '2024-11-01', 'confirmada', 'revisor'),
-(6, '67890123-4', 3, '2024-11-02', 'confirmada', 'revisor'),
-(7, '78901234-5', 4, '2024-08-01', 'confirmada', 'organizador'),
-(8, '89012345-6', 4, '2024-08-02', 'confirmada', 'organizador');
+(1, '20444683-0', 1, '2026-04-01', 'pendiente', 'autor'),
+(2, '8573283-4', 1, '2026-04-02', 'confirmada', 'academico'),
+(3, '9666240-1', 1, '2026-04-03', 'confirmada', 'revisor'),
+(4, '12421578-3', 1, '2026-04-01', 'confirmada', 'organizador');
 
--- Pago (formato decimal correcto)
+-- Pagos
 INSERT INTO pago VALUES 
-(1, 1, 100000.00, '2024-09-05', 'Tarjeta de Crédito', 'COMP-001', 'validado'),
-(2, 2, 100000.00, '2024-09-06', 'Transferencia', 'COMP-002', 'validado'),
-(3, 3, 50000.00, '2024-10-05', 'Tarjeta de Crédito', 'COMP-003', 'validado'),
-(4, 4, 50000.00, '2024-10-06', 'Transferencia', 'COMP-004', 'validado'),
-(5, 5, 10000.00, '2024-11-05', 'Tarjeta de Crédito', 'COMP-005', 'validado'),
-(6, 6, 10000.00, '2024-11-06', 'Transferencia', 'COMP-006', 'validado'),
-(7, 7, 10000.00, '2024-08-05', 'Transferencia', 'COMP-007', 'validado'),
-(8, 8, 30000.00, '2024-08-06', 'Transferencia', 'COMP-008', 'validado');
+(1, 1, 15000, '2026-04-05', 'Transferencia', '1', 'pendiente'),
+(2, 2, 0, '2026-04-02', 'Exento', '2', 'validado'),
+(3, 3, 0, '2026-04-03', 'Exento', '3', 'validado'),
+(4, 4, 0, '2026-04-01', 'Exento', '4', 'validado');
 
--- Trabajo Académico
+-- trabajos
 INSERT INTO trabajo_academico VALUES 
-(1, 1, 1, 'Trabajo de IA', 'Descripción del trabajo de IA', '2024-10-02', '10:00:00', 'aceptado'),
-(2, 1, 2, 'Trabajo de Data Science', 'Descripción del trabajo de DS', '2024-10-02', '14:00:00', 'aceptado'),
-(3, 2, 3, 'Trabajo de Seguridad', 'Descripción del trabajo de seguridad', '2024-11-16', '10:00:00', 'aceptado'),
-(4, 2, 4, 'Trabajo de DevSoft', 'Descripción del trabajo de desarrollo', '2024-11-16', '14:00:00', 'aceptado');
+(1, 1, 1, 'Memes void', 'Descripcion', '2026-05-12', '10:00:00', 'En revision'),
+(2, 1, 2, 'Ciberseguridad', 'Descripcion', '2026-05-12', '14:00:00', 'En revision');
 
--- Trabajo Temática
 INSERT INTO trabajo_tematica VALUES 
-(1, 1), (2, 2), (3, 3), (4, 4);
+(1, 1), 
+(1, 2), 
+(2, 1);
 
--- Autoría
+-- autoría
 INSERT INTO autoria VALUES 
-(1, '12345678-9'), (2, '23456789-0'), (3, '34567890-1'), (4, '45678901-2'),
-(1, '23456789-0'), (2, '34567890-1');
+(1, '20444683-0'),
+(2, '20444683-0'),
+(2, '8573283-4');
 
--- Revisión (puntacion_general calculada por trigger)
+-- revisiones (el trigger calcula el promedio)
 INSERT INTO revision VALUES 
-(1, '56789012-3', 8, 9, 7, NULL, 'Buen trabajo, mejorar metodología'),
-(1, '67890123-4', 7, 8, 8, NULL, 'Interesante, falta profundidad'),
-(2, '56789012-3', 9, 10, 9, NULL, 'Excelente trabajo'),
-(2, '67890123-4', 8, 9, 8, NULL, 'Muy buen trabajo'),
-(3, '56789012-3', 6, 7, 7, NULL, 'Interesante, originalidad limitada'),
-(3, '67890123-4', 5, 6, 6, NULL, 'Necesita revisión profunda'),
-(4, '56789012-3', 7, 8, 7, NULL, 'Metodología más robusta'),
-(4, '67890123-4', 6, 7, 7, NULL, 'Mejorar presentación');
+(1, '9666240-1', 6.5, 7.0, 6.0, NULL, 'Buena idea, falta profundidad'),
+(2, '9666240-1', 7.5, 8.0, 7.0, NULL, 'Excelente aplicación práctica');
 
--- Actividad
+-- actividades
 INSERT INTO actividad VALUES 
-(1, 1, 1, 'Taller de IA', 'Taller', 'Descripción del taller', '2024-10-01', '09:00:00', '12:00:00', 30),
-(2, 1, 2, 'Charla de Data Science', 'Charla', 'Charla sobre DS', '2024-10-01', '13:00:00', '14:00:00', 100),
-(3, 2, 3, 'Panel de Seguridad', 'Panel', 'Panel magistral', '2024-11-15', '10:00:00', '11:30:00', 50),
-(4, 2, 4, 'Taller de DevSoft', 'Taller', 'Taller práctico', '2024-11-15', '14:00:00', '17:00:00', 30),
-(5, 3, 5, 'Conferencia de Redes', 'Mesa Redonda', 'Conferencia principal', '2024-12-05', '09:00:00', '10:30:00', 100);
+(1, 1, 1, 'Actividad 1', 'Taller', 'Descripcion 1', '2026-05-12', '09:00:00', '11:00:00'),
+(2, 1, 2, 'actividad 2', 'Charla', 'Descripcion 2', '2026-05-12', '11:30:00', '12:30:00'),
+(3, 1, 3, 'Actividad 3', 'Panel', 'Descripcion 3', '2026-05-12', '15:00:00', '16:30:00');
 
--- Inscripción Actividad
+-- inscripciones a actividades
 INSERT INTO inscripcion_actividad VALUES 
-(1, 1, '12345678-9', '09:00:00', '12:00:00', '2024-09-15', TRUE),
-(2, 2, '23456789-0', '13:00:00', '14:00:00', '2024-09-16', TRUE),
-(3, 3, '34567890-1', '10:00:00', '11:30:00', '2024-10-15', TRUE),
-(4, 4, '45678901-2', '14:00:00', '17:00:00', '2024-10-16', TRUE),
-(5, 5, '56789012-3', '09:00:00', '10:30:00', '2024-11-15', TRUE);
+(1, 1, '20444683-0', NULL, NULL, '2026-04-10', FALSE),
+(1, 2, '20444683-0', NULL, NULL, '2026-04-10', FALSE),
+(2, 1, '8573283-4', NULL, NULL, '2026-04-11', FALSE),
+(2, 3, '8573283-4', NULL, NULL, '2026-04-11', FALSE),
+(3, 2, '9666240-1', NULL, NULL, '2026-04-12', FALSE),
+(4, 1, '12421578-3', NULL, NULL, '2026-04-10', FALSE);
 
--- Certificado
+-- certificados
 INSERT INTO certificado VALUES 
-(1, '12345678-9', 1, 1, 'presentacion', 'Certificado de expositor', '2024-10-04', 'CERT-001'),
-(2, '23456789-0', 1, 2, 'presentacion', 'Certificado de expositor', '2024-10-04', 'CERT-002'),
-(3, '34567890-1', 2, NULL, 'asistencia', 'Certificado de participante', '2024-11-18', 'CERT-003'),
-(4, '45678901-2', 2, NULL, 'asistencia', 'Certificado de participante', '2024-11-18', 'CERT-004'),
-(5, '56789012-3', 3, NULL, 'asistencia', 'Certificado de participante', '2024-12-08', 'CERT-005'),
-(6, '67890123-4', 3, NULL, 'asistencia', 'Certificado de participante', '2024-12-08', 'CERT-006');
+(1, '8573283-4', 1, NULL, 'asistencia', 'Certificado asistencia académico', '2026-05-14'),
+(2, '9666240-1', 1, NULL, 'asistencia', 'Certificado asistencia revisor', '2026-05-14');
 
--- Comité Organizador
+-- comité
 INSERT INTO comite_organizador VALUES 
-(1, 1, 'Comité Congreso Informática', 'Organización del congreso'),
-(2, 2, 'Comité Simposio Data', 'Organización del simposio'),
-(3, 3, 'Comité Seguridad', 'Organización de la jornada'),
-(4, 4, 'Comité Taller Dev', 'Organización del taller'),
-(5, 5, 'Comité Redes', 'Organización de la conferencia');
+(1, 1, 'Comité Ciberseguridad', 'Organización del evento');
 
--- Miembro Comité
+-- miembro comité
 INSERT INTO miembro_comite VALUES 
-(1, '78901234-5', 'Presidente'),
-(1, '89012345-6', 'Secretario'),
-(2, '78901234-5', 'Presidente'),
-(2, '89012345-6', 'Secretario'),
-(3, '78901234-5', 'Presidente'),
-(3, '89012345-6', 'Secretario');
-
--- ============================================================================
--- SECCIÓN 11: CONSULTAS DE VERIFICACIÓN
--- ============================================================================
-
--- Verificar tablas creadas
--- SHOW TABLES;
-
--- Verificar triggers
--- SHOW TRIGGERS FROM ProyectoEventia;
-
--- Verificar vistas
--- SHOW FULL TABLES WHERE Table_type = 'VIEW';
-
--- Probar vista de ranking
--- SELECT * FROM ranking_trabajos LIMIT 5;
-
--- Probar vista de participantes
--- SELECT * FROM participantes_por_evento WHERE id_evento = 1;
-
--- Probar vista de trabajos pendientes
--- SELECT * FROM trabajos_pendientes_revision;
-
--- Probar vista de asistencia
--- SELECT * FROM asistencia_por_actividad;
-
--- Probar vista de certificados
--- SELECT * FROM certificados_emitidos;
-
--- ============================================================================
--- FIN DEL SCRIPT
--- ============================================================================ 
+(1, '12421578-3', 'Presidente');
