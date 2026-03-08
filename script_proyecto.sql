@@ -1,9 +1,6 @@
-
 DROP DATABASE IF EXISTS ProyectoEventia;
 CREATE DATABASE IF NOT EXISTS ProyectoEventia;
 USE ProyectoEventia;
-
-
 
 -- creacion de tablas
 
@@ -476,10 +473,18 @@ INSERT INTO carrera VALUES (1, 'Ing. Ejecución Informática', 1);
 
 -- Participantes
 INSERT INTO participante VALUES 
-('20444683-0', 'Emilio', 'Poblete', '2000-06-27', 'emilio.poblete@usach.cl', '+56912345678', 'calle1'),
-('8573283-4', 'Sebastián', 'Reyes', '1961-05-01', 'sebastian.reyes@usach.cl', '+56987654321', 'calle2'),
-('9666240-1', 'Esteban', 'Bichon', '1965-02-12', 'esteban.bichon@usach.cl', '+56911223344', 'calle3'),
-('12421578-3', 'Griselda', 'Ramos', '1972-05-04', 'griselda.ramos@usach.cl', '+56955667788', 'calle4');
+('20444683-0', 'Emilio', 'Poblete', '2000-06-27', 'emilio.poblete@usach.cl', '+56912345678', 'calle1'), -- estudiante
+('8573283-4', 'Sebastián', 'Reyes', '1961-05-01', 'sebastian.reyes@usach.cl', '+56987654321', 'calle2'), -- académico
+('9666240-1', 'Esteban', 'Bichon', '1965-02-12', 'esteban.bichon@usach.cl', '+56911223344', 'calle3'), -- revisor
+('12421578-3', 'Griselda', 'Ramos', '1972-05-04', 'griselda.ramos@usach.cl', '+56955667788', 'calle4'), -- admin
+('12312312-3', 'Estefanía', 'Presi', '1970-03-12', 'estefania.presi@comite.cl', '+56932132112', 'calle5' ), -- miembro comité
+
+-- participantes asistentes
+('18555432-1', 'Patricio', 'Casas', '1993-03-15', 'patricio.casas@email.cl', '+56911112222', 'calle6'),
+('19666543-2', 'Gaston', 'Reyes', '1998-08-22', 'gaston.reyes@email.cl', '+56922223333', 'calle7'),
+('20777654-3', 'Francisca', 'Martinez', '2000-11-30', 'francisca.martinez@email.cl', '+56933334444', 'calle8'),
+('15888765-4', 'Calvo', 'Chuster', '1988-05-10', 'calvo.chuster@email.cl', '+56944445555', 'calle9'),
+('9999876-5', 'Bombo', 'Fica', '1964-12-08', 'bombo.fica@email.cl', '+56955556666', 'calle10');
 
 -- estudiante
 INSERT INTO estudiante VALUES ('20444683-0', 1);
@@ -505,7 +510,7 @@ INSERT INTO sala VALUES
 
 -- evento
 INSERT INTO evento_academico VALUES 
-(1, 1, 'Ciberseguridad y memes', 'Descripción evento', '2026-05-12', '2026-05-13', '12421578-3', 'activo');
+(1, 1, 'Ciberseguridad y otros', 'Descripción evento', '2026-05-12', '2026-05-13', '12421578-3', 'activo');
 
 -- temáticas
 INSERT INTO tematica VALUES
@@ -519,21 +524,34 @@ INSERT INTO evento_tematica VALUES
 
 -- inscripciones
 INSERT INTO inscripcion VALUES 
-(1, '20444683-0', 1, '2026-04-01', 'pendiente', 'autor'),
+(1, '20444683-0', 1, '2026-04-01', 'confirmada', 'autor'),
 (2, '8573283-4', 1, '2026-04-02', 'confirmada', 'academico'),
 (3, '9666240-1', 1, '2026-04-03', 'confirmada', 'revisor'),
-(4, '12421578-3', 1, '2026-04-01', 'confirmada', 'organizador');
+(4, '12421578-3', 1, '2026-04-01', 'confirmada', 'organizador'),
+-- inscripciones asistentes
+(5, '18555432-1', 1, '2026-04-15', 'confirmada', 'asistente'),  -- Patricio Casas
+(6, '19666543-2', 1, '2026-04-16', 'confirmada', 'asistente'),  -- Gaston Reyes
+(7, '20777654-3', 1, '2026-04-17', 'pendiente', 'asistente'),   -- Francisca Martinez
+(8, '15888765-4', 1, '2026-04-18', 'confirmada', 'asistente'),  -- Calvo Chuster
+(9, '9999876-5', 1, '2026-04-19', 'confirmada', 'asistente');  -- Bombo Fica
 
 -- Pagos
 INSERT INTO pago VALUES 
-(1, 1, 15000, '2026-04-05', 'Transferencia', '1', 'pendiente'),
-(2, 2, 0, '2026-04-02', 'Exento', '2', 'validado'),
-(3, 3, 0, '2026-04-03', 'Exento', '3', 'validado'),
-(4, 4, 0, '2026-04-01', 'Exento', '4', 'validado');
+(1, 1, 15000, '2026-04-05', 'Transferencia', '1', 'validado'), -- Emilio aún no paga
+(2, 2, 15000, '2026-04-02', 'Exento', '2', 'validado'),
+(3, 3, 15000, '2026-04-03', 'Exento', '3', 'validado'),
+(4, 4, 15000, '2026-04-01', 'Exento', '4', 'validado'),
+
+-- pagos asistentes
+(5, 5, 15000, '2026-04-20', 'Transferencia', '5', 'validado'),
+(6, 6, 15000, '2026-04-21', 'Tarjeta', '6', 'validado'),
+(7, 7, 15000, '2026-04-22', 'Efectivo', '7', 'pendiente'),  -- Francisca aún no paga
+(8, 8, 15000, '2026-04-23', 'Transferencia', '8', 'validado'),
+(9, 9, 15000, '2026-04-24', 'Tarjeta', '9', 'validado');
 
 -- trabajos
 INSERT INTO trabajo_academico VALUES 
-(1, 1, 1, 'Memes void', 'Descripcion', '2026-05-12', '10:00:00', 'En revision'),
+(1, 1, 1, 'Otros', 'Descripcion', '2026-05-12', '10:00:00', 'En revision'),
 (2, 1, 2, 'Ciberseguridad', 'Descripcion', '2026-05-12', '14:00:00', 'En revision');
 
 INSERT INTO trabajo_tematica VALUES 
@@ -549,23 +567,39 @@ INSERT INTO autoria VALUES
 
 -- revisiones (el trigger calcula el promedio)
 INSERT INTO revision VALUES 
-(1, '9666240-1', 6.5, 7.0, 6.0, NULL, 'Buena idea, falta profundidad'),
-(2, '9666240-1', 7.5, 8.0, 7.0, NULL, 'Excelente aplicación práctica');
+(1, '9666240-1', 6.1, 4.8, 5.4, NULL, 'Faltan correcciones'),
+(2, '9666240-1', 7.0, 6.3, 7.0, NULL, 'Excelente');
 
 -- actividades
 INSERT INTO actividad VALUES 
 (1, 1, 1, 'Actividad 1', 'Taller', 'Descripcion 1', '2026-05-12', '09:00:00', '11:00:00'),
-(2, 1, 2, 'actividad 2', 'Charla', 'Descripcion 2', '2026-05-12', '11:30:00', '12:30:00'),
+(2, 1, 2, 'actividad 2', 'Presentación', 'Descripcion 2', '2026-05-12', '11:30:00', '12:30:00'),
 (3, 1, 3, 'Actividad 3', 'Panel', 'Descripcion 3', '2026-05-12', '15:00:00', '16:30:00');
 
 -- inscripciones a actividades
 INSERT INTO inscripcion_actividad VALUES 
-(1, 1, '20444683-0', NULL, NULL, '2026-04-10', FALSE),
+(1, 1, '20444683-0', NULL, NULL, '2026-04-10', FALSE), -- false porque van a presentar
 (1, 2, '20444683-0', NULL, NULL, '2026-04-10', FALSE),
 (2, 1, '8573283-4', NULL, NULL, '2026-04-11', FALSE),
 (2, 3, '8573283-4', NULL, NULL, '2026-04-11', FALSE),
 (3, 2, '9666240-1', NULL, NULL, '2026-04-12', FALSE),
-(4, 1, '12421578-3', NULL, NULL, '2026-04-10', FALSE);
+(4, 1, '12421578-3', NULL, NULL, '2026-04-10', FALSE),
+-- inscripciones actividad asistentes
+-- patricio casas
+(5, 1, '18555432-1', '09:00:00', '11:00:00', '2026-04-15', TRUE), -- actividad 1 / taller
+(5, 2, '18555432-1', '11:30:00', '12:30:00', '2026-04-15', TRUE), -- actividad 2 / presentación trabajo 1 'Otros'
+-- gastón reyes
+(6, 3, '19666543-2', '15:00:00', '16:30:00', '2026-04-16', TRUE), -- actividad 3 / Panel trabajo 2 'Ciberseguridad'
+-- francisca martinez (no ha pagado y no va a asistir)
+(7, 1, '20777654-3', NULL, NULL, '2026-04-17', FALSE),  -- actividad 1 / taller (no va)
+(7, 2, '20777654-3', NULL, NULL, '2026-04-17', FALSE), -- actividad 2 / panel, (no va)
+-- calvo chuster (asistió a todo)
+(8, 1, '15888765-4', '09:00:00', '11:00:00', '2026-04-18', TRUE), -- actividad 1
+(8, 2, '15888765-4', '11:30:00', '12:30:00', '2026-04-18', TRUE), -- actividad 2
+(8, 3, '15888765-4', '15:00:00', '16:30:00', '2026-04-18', TRUE), -- actividad 3
+-- bombo fica
+(9, 2, '9999876-5', '11:30:00', '12:30:00', '2026-04-19', TRUE) -- actividad 2 / presentación trabajo 1 'Otros'
+;
 
 -- certificados
 INSERT INTO certificado VALUES 
@@ -578,4 +612,4 @@ INSERT INTO comite_organizador VALUES
 
 -- miembro comité
 INSERT INTO miembro_comite VALUES 
-(1, '12421578-3', 'Presidente');
+(1, '12312312-3', 'Presidente');
