@@ -2,7 +2,8 @@ DROP DATABASE IF EXISTS ProyectoEventia;
 CREATE DATABASE IF NOT EXISTS ProyectoEventia;
 USE ProyectoEventia;
 
--- creacion de tablas
+-- -------------------
+-- 1. creacion de tablas
 
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 CREATE TABLE IF NOT EXISTS participante(
@@ -272,8 +273,8 @@ CREATE TABLE IF NOT EXISTS miembro_comite(
     FOREIGN KEY (id_comite) REFERENCES comite_organizador(id_comite),
     FOREIGN KEY (rut_participante_comite) REFERENCES participante(rut)
 );
-
--- triggers
+-- ----------------------------
+-- 2. triggers
 
 -- Trigger 1: evitar solapamiento de salas en actividades
 DELIMITER //
@@ -366,17 +367,9 @@ BEGIN
 
 
 END //
-DELIMITER ;
-
--- trigger 5 calcular aforo de sede con el aforo de las salas
--- aforo_sede = suma(sala.aforo_sala)
-
--- trigger 6 calcular cantidad de salas en sede
--- cantidad_salas_sede = count(salas where sala.id_sede = sede.id_sede)
-
 
 -- --------------------------------------
--- vistas
+-- 3. vistas
 
 -- vista 1: Ranking de trabajos según puntación general, se usan las tablas:
 	-- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
@@ -387,7 +380,6 @@ FROM trabajo_academico t
 JOIN revision r ON t.id_trabajo = r.id_trabajo
 ORDER BY r.puntuacion_general desc;
 
--- tal ves pondria solo que se vea el nombre y apellido tal ves email, el resto sobra
 -- vista 2: Participantes por evento con detalles
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
@@ -413,23 +405,25 @@ JOIN revision r ON t.id_trabajo = r.id_trabajo
 WHERE t.estado_revision = 'En revision'
 ORDER BY e.nombre_evento, t.nombre_trabajo;
 
--- yo el 4 no lo entiendo como funciona no podria programarlo
--- vista 4: asistencia evento
+/*
+-- vista 4: asistencia (confirmada) evento
 -- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 -- sede(id_sede, id_ciuydad, nombre_sede, direccion_sede, cantidad_salas, aforo_sede)
 CREATE VIEW asistencia_evento AS
 SELECT
-	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, COUNT(i.rut_participante) AS inscritos,
-    -- COUNT(CASE WHEN i.estado_inscripcion = 'pendiente') AS asistencia_confirmada,
+	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, (i.rut_participante) AS inscritos,
     s.aforo_sede AS capacidad_máxima
 
 FROM evento_academico eve
 JOIN inscripcion i ON eve.id_evento = i.id_evento
+WHERE i.estado_inscripcion = 'confirmada'
 JOIN sede s ON eve.id_sede = s.id_sede
 GROUP BY eve.id_evento;
+*/
 
--- vista 5: Asistencia por actividad
+/*
+-- vista 5: Asistencia (confirmada) por actividad
 -- sala(id_sala, id_sede, numero_sala, aforo_sala)
 CREATE VIEW asistencia_por_actividad AS
 SELECT 
@@ -438,11 +432,11 @@ SELECT
     s.aforo_sala
     
 FROM actividad a
--- que hace un left join?? solo nos enseñaron join o natural join
 JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
 JOIN sala s ON a.id_sala = s.id_sala
 GROUP BY a.id_actividad
 ORDER BY a.fecha_actividad;
+*/
 
 -- vista 6: Certificados emitidos
 -- certificado(id_certificado, rut_certificado
@@ -456,8 +450,38 @@ JOIN participante p ON c.rut_certificado = p.rut
 JOIN evento_academico e ON c.id_evento = e.id_evento
 ORDER BY c.fecha_emision DESC;
 
+-- -----------------------------------
+-- 4. procedimientos 
+
+-- procedimiento 1: actualizar datos personales 
+DELIMITER ;
+DELIMITER //
+create procedure actualizar_participante(
+    in p_rut varchar(12),
+    in p_nombre varchar(40),
+    in p_apellido varchar(40),
+    in p_email varchar(80),
+    in p_telefono varchar(20),
+    in p_direccion varchar(80)
+)
+BEGIN 
+    update participante
+    set nombre=p_nombre,
+        apellido=p_apellido,
+        email=p_email,
+        telefono=p_telefono,
+        direccion=p_direccion
+    where rut=p_rut;
+
+    select 'los datos personales del usuario fueron actualizados' as mensaje;
+
+end //
+DELIMITER ;
+
+-- para usarla debe ser asi CALL actualizar_participante(aca los datos dle participante)
+
 -- ------------------------------------
--- datos de prueba 
+-- 5. datos de prueba 
 
 -- ciudad
 INSERT INTO ciudad VALUES (1, 'Santiago', 'Metropolitana', 'Chile');
@@ -613,3 +637,32 @@ INSERT INTO comite_organizador VALUES
 -- miembro comité
 INSERT INTO miembro_comite VALUES 
 (1, '12312312-3', 'Presidente');
+
+-- ----------------------------
+-- 6. Prueba Triggers
+
+-- --------------------
+-- 7. prueba procesamientos
+
+-- -----------------------------
+-- 8. Prueba vistas
+
+-- saber cant de salas en sede
+select e.id_evento, e.nombre_evento,s.nombre_sede, COUNT(sa.id_sala) as total_salas
+from evento_academico e
+join sede s on s.id_sede=e.id_sede
+join sala sa on sa.id_sede=s.id_sede
+WHERE e.id_evento= 1
+GROUP by e.id_evento,e.nombre_evento,s.nombre_sede
+;
+
+-- saber cantidad de aforo que tiene un evento
+SELECT e.id_evento, e.nombre_evento, SUM(sa.aforo_sala) AS aforo_total
+FROM evento_academico e
+JOIN sede s ON s.id_sede = e.id_sede
+JOIN sala sa ON sa.id_sede = s.id_sede
+WHERE e.id_evento = 1
+GROUP BY e.id_evento, e.nombre_evento;
+
+-- ------------------
+-- 9. Consultas simples
