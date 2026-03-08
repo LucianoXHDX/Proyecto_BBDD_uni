@@ -371,7 +371,11 @@ BEGIN
 END //
 DELIMITER ;
 
--- trigger 5 validar trabajo academico aceptado
+-- trigger 5 calcular aforo de sede con el aforo de las salas
+-- aforo_sede = suma(sala.aforo_sala)
+
+-- trigger 6 calcular cantidad de salas en sede
+-- cantidad_salas_sede = count(salas where sala.id_sede = sede.id_sede)
 
 
 -- --------------------------------------
