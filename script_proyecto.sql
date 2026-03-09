@@ -598,7 +598,7 @@ INSERT INTO administrador VALUES
 
 -- sede(id_sede,id_ciudad,nombre_sede,direccion_sede,cantidad_salas_sede,aforo_sede)
 INSERT INTO sede VALUES 
-(1, 1, 'sede1', 'dirección ', 5, 500),
+(1, 1, 'DIINF', 'santiago #9170125 ', 5, 500),
 (2,2,'la cuna del conocimeinto','villa siempre alegre #912',20,100),
 (3,3,'auditorio uc','calle el manzano #1212',1,20);-- este usare de prueba para el trigger
 
@@ -678,8 +678,8 @@ INSERT INTO pago VALUES
 
 -- trabajos(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
 INSERT INTO trabajo_academico VALUES 
-(1, 1, 1, 'Otros', 'Descripcion', '2026-05-12', '10:00:00', 'En revision'),
-(2, 1, 2, 'Ciberseguridad', 'Descripcion', '2026-05-12', '14:00:00', 'En revision'),
+(1, 1, 1, 'Vulnerabilidad de datos personales', 'Descripcion vulnerabilidades', '2026-05-12', '10:00:00', 'En revision'),
+(2, 1, 2, 'Ciberseguridad', 'Descripcion Ciberseguridad', '2026-05-12', '14:00:00', 'En revision'),
 (3, 1, 3, 'Inteligencia Artificial', 'Descripcion IA',          '2026-05-13', '09:00:00', 'En revision'),
 (4, 1, 1, 'Redes Neuronales',        'Descripcion redes',       '2026-05-13', '11:00:00', 'Aprobado'),
 (5, 1, 2, 'Seguridad en la Nube',    'Descripcion nube',        '2026-05-13', '14:00:00', 'En revision'),
@@ -719,9 +719,9 @@ INSERT INTO revision VALUES
 
 -- actividades (id_actividad,id_evento,id_sala,nombre_actividad,tipo_actividad,descripcion_actividad,fecha_actividad,hora_inicio,hora_fin)
 INSERT INTO actividad VALUES 
-(1, 1, 1, 'Actividad 1', 'Taller', 'Descripcion 1', '2026-05-12', '09:00:00', '11:00:00'),
-(2, 1, 2, 'actividad 2', 'Presentación', 'Descripcion 2', '2026-05-12', '11:30:00', '12:30:00'),
-(3, 1, 3, 'Actividad 3', 'Panel', 'Descripcion 3', '2026-05-12', '15:00:00', '16:30:00'),
+(1, 1, 1, 'Taller de Ciberseguridad', 'Taller', 'Introducción a ciberseguridad', '2026-05-12', '09:00:00', '11:00:00'),
+(2, 1, 2, 'Presentación vulnerabilidad de datos', 'Presentación', 'Descripcion presentación', '2026-05-12', '11:30:00', '12:30:00'),
+(3, 1, 3, 'Panel de infromática ', 'Panel', 'Informática moderna con IA', '2026-05-12', '15:00:00', '16:30:00'),
 (4, 1, 1, 'Taller de Python', 'Taller', 'Introduccion a Python', '2026-05-13', '09:00:00', '11:00:00'),
 (5, 1, 2, 'Panel de IA', 'Panel', 'Discusion sobre IA', '2026-05-13', '11:30:00', '13:00:00'),
 (6, 1, 3, 'Mesa redonda ML', 'Mesa redonda','Tendencias en ML', '2026-05-13', '15:00:00', '16:30:00'),
