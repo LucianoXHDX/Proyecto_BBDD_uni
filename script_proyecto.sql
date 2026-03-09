@@ -367,7 +367,7 @@ BEGIN
 
 
 END //
-
+DELIMITER ;
 -- --------------------------------------
 -- 3. vistas
 
@@ -375,11 +375,10 @@ END //
 	-- trabajo_academico(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
 	-- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 CREATE VIEW ranking_trabajos AS
-SELECT t.id_trabajo, t.nombre_trabajo, t.descripcion, t.fecha_presentacion, r.puntuacion_general
+SELECT t.id_trabajo, t.id_evento, t.nombre_trabajo, t.descripcion, t.fecha_presentacion, r.puntuacion_general
 FROM trabajo_academico t
 JOIN revision r ON t.id_trabajo = r.id_trabajo
-ORDER BY r.puntuacion_general desc;
-
+ORDER BY r.puntuacion_general DESC;
 -- vista 2: Participantes por evento con detalles
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
 -- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
@@ -398,7 +397,7 @@ ORDER BY eve.nombre_evento, p.apellido;
 -- revision(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 CREATE VIEW trabajos_pendientes_revision AS
 SELECT 
-    t.id_trabajo, t.nombre_trabajo, e.nombre_evento, r.rut_revisor AS revisor, t.estado_revision
+    t.id_trabajo, t.nombre_trabajo, e.id_evento ,e.nombre_evento, r.rut_revisor AS revisor, t.estado_revision
 FROM trabajo_academico t
 JOIN evento_academico e ON t.id_evento = e.id_evento
 JOIN revision r ON t.id_trabajo = r.id_trabajo
@@ -521,70 +520,116 @@ DELIMITER ;
 -- ------------------------------------
 -- 5. datos de prueba 
 
--- ciudad
-INSERT INTO ciudad VALUES (1, 'Santiago', 'Metropolitana', 'Chile');
+-- ciudad(id_ciudad,nombre_ciudad,region,pais)
+INSERT INTO ciudad VALUES 
+(1, 'Santiago', 'Metropolitana', 'Chile'),
+(2,'puerto Montt','los rios','Chile'),
+(3,'osorno','los lagos','Chile'),
+(4,'putre','arica','Chile'),
+(5,'coquimbo','coquimbo','chile');
 
--- universidad
-INSERT INTO universidad VALUES (1, 'USACH', 'Chile');
 
--- departamento
-INSERT INTO departamento VALUES (1, 'Depto Ingeniería', 1);
+-- universidad(id_universidad,nombre,pais)
+INSERT INTO universidad VALUES 
+(1, 'USACH', 'Chile'),
+(2,'UC','Chile'),
+(3,'PUCV','Chile'),
+(4,'UDD','Chile'),
+(5,'UA','Chile');
 
--- carrera
-INSERT INTO carrera VALUES (1, 'Ing. Ejecución Informática', 1);
+-- departamento(id_departamento,nombre,id_idniversidd)
+INSERT INTO departamento VALUES 
+(1, 'Depto Ingeniería', 1),
+(2,'Depto de fisica',2),
+(3,'Facultad de periodismo',3),
+(4,'Facultad de biotecnologia',4),
+(5,'Facultad de economia',5),
+(6,'Depto de economia',1); -- repito la universidad para tener variedad
 
--- Participantes
-INSERT INTO participante VALUES 
+-- carrera(id_carrera,nombre,id_departamento)
+INSERT INTO carrera VALUES 
+(1, 'Ing. Ejecución Informática', 1),
+(2,'Licenciatura en física',2),
+(3,'Periodismo',3),
+(4,'Biotecnología',4),
+(5,'Economía',5),
+(6,'Economía',6); -- repito el departamento para tener variedad
+
+-- Participantes(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
+INSERT INTO participante VALUES
 ('20444683-0', 'Emilio', 'Poblete', '2000-06-27', 'emilio.poblete@usach.cl', '+56912345678', 'calle1'), -- estudiante
 ('8573283-4', 'Sebastián', 'Reyes', '1961-05-01', 'sebastian.reyes@usach.cl', '+56987654321', 'calle2'), -- académico
 ('9666240-1', 'Esteban', 'Bichon', '1965-02-12', 'esteban.bichon@usach.cl', '+56911223344', 'calle3'), -- revisor
-('12421578-3', 'Griselda', 'Ramos', '1972-05-04', 'griselda.ramos@usach.cl', '+56955667788', 'calle4'), -- admin
-('12312312-3', 'Estefanía', 'Presi', '1970-03-12', 'estefania.presi@comite.cl', '+56932132112', 'calle5' ), -- miembro comité
+('12421578-3', 'Griselda', 'Ramos', '1972-05-04', 'griselda.ramos@usach.cl', '+56955667788', 'calle4'), -- admim
+('12312312-3', 'Estefanía', 'Presi', '1970-03-12', 'estefania.presi@comite.cl', '+56932132112', 'calle5' ), --   miembro comite
 
--- participantes asistentes
-('18555432-1', 'Patricio', 'Casas', '1993-03-15', 'patricio.casas@email.cl', '+56911112222', 'calle6'),
-('19666543-2', 'Gaston', 'Reyes', '1998-08-22', 'gaston.reyes@email.cl', '+56922223333', 'calle7'),
-('20777654-3', 'Francisca', 'Martinez', '2000-11-30', 'francisca.martinez@email.cl', '+56933334444', 'calle8'),
-('15888765-4', 'Calvo', 'Chuster', '1988-05-10', 'calvo.chuster@email.cl', '+56944445555', 'calle9'),
-('9999876-5', 'Bombo', 'Fica', '1964-12-08', 'bombo.fica@email.cl', '+56955556666', 'calle10');
+-- agrego 2 de cada uno para tener variedad en los datos
+('18555432-1', 'Patricio', 'Casas', '1993-03-15', 'patricio.casas@email.cl', '+56911112222', 'calle6'), -- estudiante
+('19666543-2', 'Gaston', 'Reyes', '1998-08-22', 'gaston.reyes@email.cl', '+56922223333', 'calle7'), -- academico
+('20777654-3', 'Francisca', 'Martinez', '2000-11-30', 'francisca.martinez@email.cl', '+56933334444', 'calle8'), -- revisor
+('15888765-4', 'juan carlos', 'bodoque', '1988-05-10', 'juan.carlos.bodoque@email.cl', '+56944445555', 'calle9'), -- admin
+('9999876-5', 'juan', 'martinez', '1964-12-08', 'juan.martinez@email.cl', '+56955556666', 'calle10'), -- miebro comite
+-- mas participantes para tener variedad en los datos
+('11111111-1', 'Carlos', 'Mendoza', '1995-03-15', 'carlos.mendoza@usach.cl', '+56911111111', 'calle11'),
+('22222222-2', 'Ana', 'Torres', '1998-07-22', 'ana.torres@usach.cl', '+56922222222', 'calle12'),
+('33333333-3', 'Pedro', 'Soto', '1990-11-05', 'pedro.soto@usach.cl', '+56933333333', 'calle13'),
+('44444444-4', 'Laura', 'Vega', '1985-09-18', 'laura.vega@usach.cl', '+56944444444', 'calle14'),
+('55555555-5', 'Diego', 'Mora', '2001-01-30', 'diego.mora@usach.cl', '+56955555555', 'calle15');
 
--- estudiante
-INSERT INTO estudiante VALUES ('20444683-0', 1);
+-- estudiante(rut,id_carrera)
+INSERT INTO estudiante VALUES 
+('20444683-0', 1),
+('18555432-1',2);
 
--- academico
-INSERT INTO academico VALUES ('8573283-4', 1, 'Doctor');
+-- academico(rut,id_departamento,grado_academico)
+INSERT INTO academico VALUES
+('8573283-4', 1, 'Doctor'),
+('19666543-2',2, 'magister');
 
--- revisor
-INSERT INTO revisor VALUES ('9666240-1', 15, 1);
+-- revisor(rut, annos_experencia,id_universidad)
+INSERT INTO revisor VALUES
+ ('9666240-1', 15, 1),
+ ('20777654-3',20,3);  
 
--- administrador
-INSERT INTO administrador VALUES ('12421578-3', TRUE, 1);
+-- administrador(rut,estado,id_universidad)
+INSERT INTO administrador VALUES
+ ('12421578-3', TRUE, 1),
+ ('15888765-4', TRUE,4);
 
--- sede
+-- sede(id_sede,id_ciudad,nombre_sede,direccion_sede,cantidad_salas_sede,aforo_sede)
 INSERT INTO sede VALUES 
-(1, 1, 'sede1', 'dirección ', 5, 500);
+(1, 1, 'sede1', 'dirección ', 5, 500),
+(2,2,'la cuna del conocimeinto','villa siempre alegre #912',20,100),
+(3,3,'auditorio uc','calle el manzano #1212',1,20);-- este usare de prueba para el trigger
 
--- sala
+-- sala(id_sala,id_sede,numero_sala,aforo_sala)
 INSERT INTO sala VALUES 
 (1, 1, 'A-101', 100),
 (2, 1, 'A-102', 150),
-(3, 1, 'B-201', 80);
+(3, 1, 'B-201', 80),
+(4,2,'EAO 12',10),
+(5,3,'uc 10',1);
 
--- evento
+-- evento_academico (id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 INSERT INTO evento_academico VALUES 
-(1, 1, 'Ciberseguridad y otros', 'Descripción evento', '2026-05-12', '2026-05-13', '12421578-3', 'activo');
+(1, 1, 'Ciberseguridad y otros', 'Descripción evento', '2026-05-12', '2026-05-13', '12421578-3', 'activo'),
+(2,2,'redes computacionales mediante pythn','Se busca enseñar tecnicas avanzadas de programcaion','2026-03-12', '2026-04-13', '12421578-3', 'activo'),
+(3,3,'construcion de modelos embebidos',' se intenta presentar un modelo avanzado','2026-03-12','2026-05-03','12421578-3','activo');
 
--- temáticas
+-- tematicas(id_tematica,nombre_tematica,descripcion_tematica)
 INSERT INTO tematica VALUES
 (1, 'Ciberseguridad', 'Descripción'),
-(2, 'Memes', 'Descripción');
+(2, 'redes computacionales', 'Descripción'),
+(3, 'Inteligencia Artificial', 'Descripción');
 
--- evento tematicas
+-- evento tematicas(id_evento,id_tematica)
 INSERT INTO evento_tematica VALUES 
 (1, 1), 
-(1, 2);
+(1, 2),
+(2, 2),
+(3, 3);
 
--- inscripciones
+-- inscripciones(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
 INSERT INTO inscripcion VALUES 
 (1, '20444683-0', 1, '2026-04-01', 'confirmada', 'autor'),
 (2, '8573283-4', 1, '2026-04-02', 'confirmada', 'academico'),
@@ -594,12 +639,25 @@ INSERT INTO inscripcion VALUES
 (5, '18555432-1', 1, '2026-04-15', 'confirmada', 'asistente'),  -- Patricio Casas
 (6, '19666543-2', 1, '2026-04-16', 'confirmada', 'asistente'),  -- Gaston Reyes
 (7, '20777654-3', 1, '2026-04-17', 'pendiente', 'asistente'),   -- Francisca Martinez
-(8, '15888765-4', 1, '2026-04-18', 'confirmada', 'asistente'),  -- Calvo Chuster
-(9, '9999876-5', 1, '2026-04-19', 'confirmada', 'asistente');  -- Bombo Fica
+(8, '15888765-4', 1, '2026-04-18', 'confirmada', 'asistente'),  -- juan carlos bodoque
+(9, '9999876-5', 1, '2026-04-19', 'confirmada', 'asistente'),  -- juan martinez
 
--- Pagos
+(10, '11111111-1', 1, '2026-04-20', 'confirmada', 'asistente'), -- Carlos Mendoza
+(11, '22222222-2', 1, '2026-04-21', 'confirmada', 'asistente'), -- Ana Torres
+(12, '33333333-3', 1, '2026-04-22', 'pendiente',  'asistente'), -- Pedro Soto aún no paga
+(13, '44444444-4', 1, '2026-04-23', 'confirmada', 'asistente'),  -- Laura Vega
+(14, '55555555-5', 1, '2026-04-24', 'confirmada', 'asistente'),  -- Diego Mora
+
+-- datos para que falle el trigger
+(16, '11111111-1', 3, '2026-04-25', 'confirmada', 'asistente'),
+(17, '22222222-2', 3, '2026-04-25', 'confirmada', 'asistente'),
+(18, '33333333-3', 3, '2026-04-25', 'confirmada', 'asistente');
+
+
+
+-- Pagos(id_pago,id_inscripcion,monto,fecha_pago,medio_pago,id_comprobante,estado_pago)
 INSERT INTO pago VALUES 
-(1, 1, 15000, '2026-04-05', 'Transferencia', '1', 'validado'), -- Emilio aún no paga
+(1, 1, 15000, '2026-04-05', 'Transferencia', '1', 'pendiente'), -- Emilio aún no paga
 (2, 2, 15000, '2026-04-02', 'Exento', '2', 'validado'),
 (3, 3, 15000, '2026-04-03', 'Exento', '3', 'validado'),
 (4, 4, 15000, '2026-04-01', 'Exento', '4', 'validado'),
@@ -609,36 +667,68 @@ INSERT INTO pago VALUES
 (6, 6, 15000, '2026-04-21', 'Tarjeta', '6', 'validado'),
 (7, 7, 15000, '2026-04-22', 'Efectivo', '7', 'pendiente'),  -- Francisca aún no paga
 (8, 8, 15000, '2026-04-23', 'Transferencia', '8', 'validado'),
-(9, 9, 15000, '2026-04-24', 'Tarjeta', '9', 'validado');
+(9, 9, 15000, '2026-04-24', 'Tarjeta', '9', 'validado'),
 
--- trabajos
+(10, 10, 15000, '2026-04-20', 'Transferencia', '10', 'validado'),
+(11, 11, 15000, '2026-04-21', 'Tarjeta',       '11', 'validado'),
+(12, 12, 15000, '2026-04-22', 'Efectivo',       '12', 'pendiente'), -- pedro aun no paga
+(13, 13, 15000, '2026-04-23', 'Transferencia', '13', 'validado'),
+(14, 14, 15000, '2026-04-24', 'Tarjeta',       '14', 'validado');
+
+
+-- trabajos(id_trabajo PK, id_evento, id_sala_presentacion, nombre_trabajo, descripcion, fecha_presentacion, estado_revision)
 INSERT INTO trabajo_academico VALUES 
 (1, 1, 1, 'Otros', 'Descripcion', '2026-05-12', '10:00:00', 'En revision'),
-(2, 1, 2, 'Ciberseguridad', 'Descripcion', '2026-05-12', '14:00:00', 'En revision');
+(2, 1, 2, 'Ciberseguridad', 'Descripcion', '2026-05-12', '14:00:00', 'En revision'),
+(3, 1, 3, 'Inteligencia Artificial', 'Descripcion IA',          '2026-05-13', '09:00:00', 'En revision'),
+(4, 1, 1, 'Redes Neuronales',        'Descripcion redes',       '2026-05-13', '11:00:00', 'Aprobado'),
+(5, 1, 2, 'Seguridad en la Nube',    'Descripcion nube',        '2026-05-13', '14:00:00', 'En revision'),
+(6, 1, 3, 'Machine Learning',        'Descripcion ML',          '2026-05-13', '16:00:00', 'Aprobado');
 
+-- trabajo_tematica(id_trabajo,id_tematica)
 INSERT INTO trabajo_tematica VALUES 
 (1, 1), 
 (1, 2), 
-(2, 1);
+(2, 1),
+(3, 1),
+(3, 2),
+(4, 1),
+(5, 1),
+(6, 2);
 
--- autoría
+-- autoria(id_trabajo,rut_autor)
 INSERT INTO autoria VALUES 
 (1, '20444683-0'),
 (2, '20444683-0'),
-(2, '8573283-4');
+(2, '8573283-4'),
+(3, '20444683-0'),  -- Emilio autor de trabajo 3
+(3, '8573283-4'),   -- Sebastian coautor trabajo 3
+(4, '8573283-4'),   -- Sebastian autor trabajo 4
+(5, '20444683-0'),  -- Emilio autor trabajo 5
+(6, '8573283-4');   -- Sebastian autor trabajo 6
 
 -- revisiones (el trigger calcula el promedio)
+-- revisiones(id_trabajo, rut_revisor, originalidad, pertinencia, claridad, puntuacion_general, comentarios_revision)
 INSERT INTO revision VALUES 
 (1, '9666240-1', 6.1, 4.8, 5.4, NULL, 'Faltan correcciones'),
-(2, '9666240-1', 7.0, 6.3, 7.0, NULL, 'Excelente');
+(2, '9666240-1', 7.0, 6.3, 7.0, NULL, 'Excelente'),
+(3, '9666240-1', 5.0, 4.5, 5.5, NULL, 'Necesita mejoras'),
+(4, '9666240-1', 7.0, 7.0, 6.5, NULL, 'Muy buen trabajo'),
+(5, '9666240-1', 4.0, 5.0, 4.5, NULL, 'Revisar referencias'),
+(6, '9666240-1', 6.5, 7.0, 6.0, NULL, 'Excelente enfoque');
 
--- actividades
+-- actividades (id_actividad,id_evento,id_sala,nombre_actividad,tipo_actividad,descripcion_actividad,fecha_actividad,hora_inicio,hora_fin)
 INSERT INTO actividad VALUES 
 (1, 1, 1, 'Actividad 1', 'Taller', 'Descripcion 1', '2026-05-12', '09:00:00', '11:00:00'),
 (2, 1, 2, 'actividad 2', 'Presentación', 'Descripcion 2', '2026-05-12', '11:30:00', '12:30:00'),
-(3, 1, 3, 'Actividad 3', 'Panel', 'Descripcion 3', '2026-05-12', '15:00:00', '16:30:00');
+(3, 1, 3, 'Actividad 3', 'Panel', 'Descripcion 3', '2026-05-12', '15:00:00', '16:30:00'),
+(4, 1, 1, 'Taller de Python', 'Taller', 'Introduccion a Python', '2026-05-13', '09:00:00', '11:00:00'),
+(5, 1, 2, 'Panel de IA', 'Panel', 'Discusion sobre IA', '2026-05-13', '11:30:00', '13:00:00'),
+(6, 1, 3, 'Mesa redonda ML', 'Mesa redonda','Tendencias en ML', '2026-05-13', '15:00:00', '16:30:00'),
+(8, 3, 5, 'Taller embebidos', 'Taller', 'Desc prueba', '2026-05-01', '09:00:00', '11:00:00');
 
--- inscripciones a actividades
+
+-- inscripciones a actividades (id_inscripcion,id_activiad,rut_participante,hora_entrada,hora_salida,fecha_inscripcion,asistencia_confrimada)
 INSERT INTO inscripcion_actividad VALUES 
 (1, 1, '20444683-0', NULL, NULL, '2026-04-10', FALSE), -- false porque van a presentar
 (1, 2, '20444683-0', NULL, NULL, '2026-04-10', FALSE),
@@ -655,36 +745,101 @@ INSERT INTO inscripcion_actividad VALUES
 -- francisca martinez (no ha pagado)
 (7, 1, '20777654-3', NULL, NULL, '2026-04-17', FALSE),  -- actividad 1 / taller (aun no termina)
 (7, 2, '20777654-3', NULL, NULL, '2026-04-17', FALSE), -- actividad 2 / panel, (aun no termina)
--- calvo chuster (asistió a todo)
+-- juan carlos bodoque
 (8, 1, '15888765-4', '09:00:00', '11:00:00', '2026-04-18', TRUE), -- actividad 1
 (8, 2, '15888765-4', '11:30:00', '12:30:00', '2026-04-18', TRUE), -- actividad 2
 (8, 3, '15888765-4', '15:00:00', '16:30:00', '2026-04-18', TRUE), -- actividad 3
--- bombo fica
-(9, 2, '9999876-5', '11:30:00', '12:30:00', '2026-04-19', TRUE); -- actividad 2 / presentación trabajo 1 'Otros'
+
+(9, 2, '9999876-5', '11:30:00', '12:30:00', '2026-04-19', TRUE), -- actividad 2 / presentación trabajo 1 'Otros'
+(10, 4, '11111111-1', '09:00:00', '11:00:00', '2026-04-20', TRUE),  -- Carlos taller python
+(10, 5, '11111111-1', '11:30:00', '13:00:00', '2026-04-20', TRUE),  -- Carlos panel IA
+(11, 4, '22222222-2', '09:00:00', '11:00:00', '2026-04-21', TRUE),  -- Ana taller python
+(11, 6, '22222222-2', '15:00:00', '16:30:00', '2026-04-21', TRUE),  -- Ana mesa redonda
+(13, 5, '44444444-4', '11:30:00', '13:00:00', '2026-04-23', TRUE),  -- Laura panel IA
+(13, 6, '44444444-4', '15:00:00', '16:30:00', '2026-04-23', TRUE),  -- Laura mesa redonda
+(14, 4, '55555555-5', '09:00:00', '11:00:00', '2026-04-24', TRUE),  -- Diego taller python
+(14, 6, '55555555-5', NULL, NULL, '2026-04-24', FALSE);             -- Diego mesa redonda (no asistio)
 
 
--- certificados
+-- certificados(id_certificado,rut_certificado,id_evento,id_trabajo,ripo_certificado,descripcion_certificado,fecha_emision)
 INSERT INTO certificado VALUES 
 (1, '8573283-4', 1, NULL, 'asistencia', 'Certificado asistencia académico', '2026-05-14'),
 (2, '9666240-1', 1, NULL, 'asistencia', 'Certificado asistencia revisor', '2026-05-14');
 
--- comité
+-- comité(id_comite,id_evento_nombre_comite,descripcion_comite)
 INSERT INTO comite_organizador VALUES 
 (1, 1, 'Comité Ciberseguridad', 'Organización del evento');
 
--- miembro comité
+-- miembro comité(id_comite,rut_participante_comite,cargo_comite)
 INSERT INTO miembro_comite VALUES 
 (1, '12312312-3', 'Presidente');
 
 -- ----------------------------
 -- 6. Prueba Triggers
+-- evitar_solamiento_sala
+
+INSERT INTO actividad VALUES (100, 1, 1, 'charla ciberseguridad', 'Charla', 'Descripcion', '2026-05-14', '09:00:00', '11:00:00'); -- lo acepta
+
+INSERT INTO actividad VALUES (101, 1, 1, 'Charla python', 'Charla', 'Descripcion', '2026-05-14', '10:00:00', '12:00:00'); -- lo rechaza por solapamiento
+
+-- confirmacion_rol_unico
+INSERT INTO inscripcion VALUES (15, '33333333-3', 2, '2026-04-25', 'pendiente', 'administrador'); -- lo acepta
+
+INSERT INTO inscripcion VALUES (16, '33333333-3', 2, '2026-04-25', 'pendiente', 'profesor'); -- lo rechaza por rol unico
+
+
+-- calular_puntacion_general
+INSERT INTO revision VALUES (4, '20777654-3', 6.0, 5.0, 7.0, NULL, 'Buena revision'); -- agregamos una revision al trabajo 4
+
+SELECT * FROM revision WHERE id_trabajo = 4 AND rut_revisor = '20777654-3'; -- la puntuacion general debe ser 6.0
+
+-- evitar_sobrecupo
+-- acepta la primera persona
+INSERT INTO inscripcion_actividad VALUES (16, 8, '11111111-1', NULL, NULL, '2026-04-25', FALSE);
+-- segunda persona (debe fallar, sala llena)
+INSERT INTO inscripcion_actividad VALUES (17, 8, '22222222-2', NULL, NULL, '2026-04-25', FALSE);
 
 -- --------------------
--- 7. prueba procesamientos
+-- 7. prueba procedimeinto
+-- actualizar participante
+SELECT * FROM participante WHERE rut = '20444683-0';
+-- actualizamos los datos
+CALL actualizar_participante('20444683-0', 'Emilio', 'Poblete', 'emilio.nuevo@usach.cl', '+56999999999', 'Estacion Central 123');
+-- verificamos los datos
+SELECT * FROM participante WHERE rut = '20444683-0';
+
+
+-- registrar entrada o solida
+-- verificamos antes
+SELECT * FROM inscripcion_actividad WHERE id_inscripcion = 1 AND id_actividad = 1;
+-- registrar entrada
+CALL registrar_entrada_salida('20444683-0', 1, 'entrada');
+-- registrar salida
+CALL registrar_entrada_salida('20444683-0', 1, 'salida');
+-- ver estado despues
+SELECT * FROM inscripcion_actividad WHERE id_inscripcion = 1 AND id_actividad = 1;
+
+-- validar pago 
+SELECT * FROM pago WHERE id_pago = 1;
+SELECT * FROM inscripcion WHERE id_inscripcion = 1;
+CALL validar_pago(1);
+-- ver estado despues, pago debe ser 'validado' e inscripcion 'confirmada'
+SELECT * FROM pago WHERE id_pago = 1;
+SELECT * FROM inscripcion WHERE id_inscripcion = 1;
+-- caso error: intentar validar el mismo pago de nuevo
+CALL validar_pago(1);
+call validar_pago(7); -- tambien falta pagar
 
 -- -----------------------------
 -- 8. Prueba vistas
+-- prueba vista ranking
 
+SELECT * FROM ranking_trabajos WHERE id_evento = 1; -- el ranking de los trabajos de vista
+
+-- prueba ver participantes en evento
+SELECT * FROM participantes_por_evento WHERE id_evento = 1;
+-- para ver trabajos pendientes por tematica
+SELECT * FROM trabajos_pendientes_revision WHERE id_evento = 1;
 
 -- ------------------
 -- 9. Consultas simples
@@ -701,3 +856,17 @@ JOIN sede s ON s.id_sede = e.id_sede
 JOIN sala sa ON sa.id_sede = s.id_sede
 WHERE e.id_evento = 1
 GROUP BY e.id_evento, e.nombre_evento;
+
+-- saber cantidad de participantes inscritos en un evento
+SELECT e.id_evento, e.nombre_evento, COUNT(DISTINCT i.rut_participante) AS cantidad_participantes
+FROM evento_academico e
+JOIN inscripcion i ON i.id_evento = e.id_evento 
+WHERE e.id_evento = 1
+GROUP BY e.id_evento, e.nombre_evento;  
+
+-- saber cantidad de trabajos presentados en un evento
+SELECT e.id_evento, e.nombre_evento, COUNT(DISTINCT t.id_trabajo) AS cantidad_trabajos
+FROM evento_academico e
+JOIN trabajo_academico t ON t.id_evento = e.id_evento
+WHERE e.id_evento = 1
+GROUP BY e.id_evento, e.nombre_evento;  
