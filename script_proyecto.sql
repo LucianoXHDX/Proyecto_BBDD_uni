@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS estudiante(
 CREATE TABLE IF NOT EXISTS revisor(
     rut VARCHAR(12) PRIMARY KEY,
     annos_experiencia INT,
-    id_universidad INT, -- elimine el null pq siempre agregaremos que el revisor es perteneciente a una universdiad
+    id_universidad INT, -- 
     FOREIGN KEY (rut) REFERENCES participante(rut),
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS revisor(
 -- tabla administrador(rut,estado,id_universidad)
 CREATE TABLE IF NOT EXISTS administrador(
     rut VARCHAR(12) PRIMARY KEY,
-    estado BOOLEAN DEFAULT TRUE, -- estado de qué? asfhjaksf lo borramos?
-    id_universidad INT,-- elimine el null pq siempre agregaremos que el revisor es perteneciente a una universdiad
+    estado BOOLEAN DEFAULT TRUE, -- estado referencia a que si esta activo
+    id_universidad INT,
     FOREIGN KEY (rut) REFERENCES participante(rut),
     FOREIGN KEY (id_universidad) REFERENCES universidad(id_universidad)
 );
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS pago(
     monto INT,
     fecha_pago DATE,
     medio_pago VARCHAR(40),
-    id_comprobante VARCHAR(100) UNIQUE, -- quitamos esto?
+    id_comprobante VARCHAR(100) UNIQUE, 
     estado_pago VARCHAR(20) DEFAULT 'pendiente',
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
 );
@@ -198,9 +198,9 @@ CREATE TABLE IF NOT EXISTS autoria(
 CREATE TABLE IF NOT EXISTS revision(
     id_trabajo INT,
     rut_revisor VARCHAR(12),
-    originalidad DECIMAL,
-    pertinencia DECIMAL,
-    claridad DECIMAL, -- nota decimal entre 1 a 7
+    originalidad DECIMAL(3,1),
+    pertinencia DECIMAL(3,1),
+    claridad DECIMAL(3,1), -- nota decimal entre 1 a 7
     puntuacion_general DECIMAL, -- promedio entre las puntuaciones del criterio
     comentarios_revision VARCHAR(500),
     PRIMARY KEY (id_trabajo, rut_revisor),
@@ -230,7 +230,7 @@ CREATE TABLE IF NOT EXISTS inscripcion_actividad(
     id_actividad INT,
     rut_participante VARCHAR(12),
     hora_entrada TIME,
-    hora_salida TIME,		-- quitar hora salida?
+    hora_salida TIME,		
     fecha_inscripcion DATE,
     asistencia_confirmada BOOLEAN DEFAULT FALSE, -- partimos que nadie asistio
     PRIMARY KEY (id_inscripcion, id_actividad),
@@ -240,8 +240,8 @@ CREATE TABLE IF NOT EXISTS inscripcion_actividad(
 );
 
 
--- por rellenar el parentesis
--- tabla certificado()
+
+-- tabla certificado(id_certificado,rut_certificado,id_evento,id_trabajo,ripo_certificado,descripcion_certificado,fecha_emision)
 CREATE TABLE IF NOT EXISTS certificado(
     id_certificado INT PRIMARY KEY AUTO_INCREMENT,
     rut_certificado VARCHAR(12),
@@ -405,40 +405,9 @@ JOIN revision r ON t.id_trabajo = r.id_trabajo
 WHERE t.estado_revision = 'En revision'
 ORDER BY e.nombre_evento, t.nombre_trabajo;
 
-/*
--- vista 4: asistencia (confirmada) evento
--- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
--- inscripcion(id_inscripcion, rut_estudiante, id_evento, fecha_inscripcion, estado_inscripcion, rol_en_evento)
--- sede(id_sede, id_ciuydad, nombre_sede, direccion_sede, cantidad_salas, aforo_sede)
-CREATE VIEW asistencia_evento AS
-SELECT
-	eve.id_evento, eve.nombre_evento, eve.fecha_inicio, eve.fecha_fin, estado_evento, (i.rut_participante) AS inscritos,
-    s.aforo_sede AS capacidad_máxima
 
-FROM evento_academico eve
-JOIN inscripcion i ON eve.id_evento = i.id_evento
-WHERE i.estado_inscripcion = 'confirmada'
-JOIN sede s ON eve.id_sede = s.id_sede
-GROUP BY eve.id_evento;
-*/
 
-/*
--- vista 5: Asistencia (confirmada) por actividad
--- sala(id_sala, id_sede, numero_sala, aforo_sala)
-CREATE VIEW asistencia_por_actividad AS
-SELECT 
-    a.id_actividad, a.nombre_actividad, a.tipo_actividad, a.fecha_actividad, COUNT(ia.rut_participante) AS inscritos,
-    SUM(CASE WHEN ia.asistencia_confirmada = TRUE THEN 1 ELSE 0 END) AS asistencia_confirmada,
-    s.aforo_sala
-    
-FROM actividad a
-JOIN inscripcion_actividad ia ON a.id_actividad = ia.id_actividad
-JOIN sala s ON a.id_sala = s.id_sala
-GROUP BY a.id_actividad
-ORDER BY a.fecha_actividad;
-*/
-
--- vista 6: Certificados emitidos
+-- vista 4: Certificados emitidos
 -- certificado(id_certificado, rut_certificado
 -- evento_academico(id_evento, id_sede, nombre_evento, descripcion_evento, fecha_inicio, fecha_fin, rut_creador, estado_evento)
 -- participante(rut, nombre, apellido, fecha_nac, email, telefono, direccion)
@@ -454,7 +423,6 @@ ORDER BY c.fecha_emision DESC;
 -- 4. procedimientos 
 
 -- procedimiento 1: actualizar datos personales 
-DELIMITER ;
 DELIMITER //
 create procedure actualizar_participante(
     in p_rut varchar(12),
@@ -479,6 +447,76 @@ end //
 DELIMITER ;
 
 -- para usarla debe ser asi CALL actualizar_participante(aca los datos dle participante)
+
+
+-- procedimeinto 2: registrar entrada o salida de un participante
+DELIMITER //
+CREATE PROCEDURE registrar_entrada_salida(
+    IN p_rut VARCHAR(12),
+    IN p_id_actividad INT,
+    IN p_tipo VARCHAR(10) -- entrada o salida
+)
+BEGIN
+    DECLARE v_id_inscripcion INT;
+
+    -- primero buscar el id_inscripcion
+
+    SELECT id_inscripcion INTO v_id_inscripcion
+    FROM inscripcion
+    WHERE rut_participante = p_rut;
+
+    IF p_tipo = 'entrada' THEN          
+        UPDATE inscripcion_actividad
+        SET hora_entrada = TIME(NOW())  
+        WHERE id_inscripcion = v_id_inscripcion
+          AND id_actividad = p_id_actividad;
+
+    ELSEIF p_tipo = 'salida' THEN       
+        UPDATE inscripcion_actividad
+        SET hora_salida = TIME(NOW()),  
+            asistencia_confirmada = TRUE
+        WHERE id_inscripcion = v_id_inscripcion
+          AND id_actividad = p_id_actividad;
+    END IF;
+
+    SELECT 'Registro exitoso' AS mensaje;
+END //
+DELIMITER ;
+
+
+-- procedimeinto 3: validar el pago
+DELIMITER //
+CREATE PROCEDURE validar_pago(
+    IN p_id_pago INT
+)
+BEGIN
+    DECLARE v_estado_pago VARCHAR(20);
+    DECLARE v_id_inscripcion INT;
+
+    
+    SELECT estado_pago, id_inscripcion INTO v_estado_pago, v_id_inscripcion
+    FROM pago
+    WHERE id_pago = p_id_pago;
+
+   
+    if v_estado_pago = 'validado' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El pago ya fue validado anteriormente';
+    END IF;
+
+    
+    update pago
+    SET estado_pago = 'validado'
+    WHERE id_pago = p_id_pago;
+
+    
+    update inscripcion
+    SET estado_inscripcion = 'confirmada'
+    WHERE id_inscripcion = v_id_inscripcion;
+
+    select 'pago validado e inscripcion confirmada con exito' AS mensaje;
+END //
+DELIMITER ;
 
 -- ------------------------------------
 -- 5. datos de prueba 
@@ -614,16 +652,16 @@ INSERT INTO inscripcion_actividad VALUES
 (5, 2, '18555432-1', '11:30:00', '12:30:00', '2026-04-15', TRUE), -- actividad 2 / presentación trabajo 1 'Otros'
 -- gastón reyes
 (6, 3, '19666543-2', '15:00:00', '16:30:00', '2026-04-16', TRUE), -- actividad 3 / Panel trabajo 2 'Ciberseguridad'
--- francisca martinez (no ha pagado y no va a asistir)
-(7, 1, '20777654-3', NULL, NULL, '2026-04-17', FALSE),  -- actividad 1 / taller (no va)
-(7, 2, '20777654-3', NULL, NULL, '2026-04-17', FALSE), -- actividad 2 / panel, (no va)
+-- francisca martinez (no ha pagado)
+(7, 1, '20777654-3', NULL, NULL, '2026-04-17', FALSE),  -- actividad 1 / taller (aun no termina)
+(7, 2, '20777654-3', NULL, NULL, '2026-04-17', FALSE), -- actividad 2 / panel, (aun no termina)
 -- calvo chuster (asistió a todo)
 (8, 1, '15888765-4', '09:00:00', '11:00:00', '2026-04-18', TRUE), -- actividad 1
 (8, 2, '15888765-4', '11:30:00', '12:30:00', '2026-04-18', TRUE), -- actividad 2
 (8, 3, '15888765-4', '15:00:00', '16:30:00', '2026-04-18', TRUE), -- actividad 3
 -- bombo fica
-(9, 2, '9999876-5', '11:30:00', '12:30:00', '2026-04-19', TRUE) -- actividad 2 / presentación trabajo 1 'Otros'
-;
+(9, 2, '9999876-5', '11:30:00', '12:30:00', '2026-04-19', TRUE); -- actividad 2 / presentación trabajo 1 'Otros'
+
 
 -- certificados
 INSERT INTO certificado VALUES 
@@ -647,14 +685,14 @@ INSERT INTO miembro_comite VALUES
 -- -----------------------------
 -- 8. Prueba vistas
 
+
+-- ------------------
+-- 9. Consultas simples
 -- saber cant de salas en sede
-select e.id_evento, e.nombre_evento,s.nombre_sede, COUNT(sa.id_sala) as total_salas
+select e.id_evento, e.nombre_evento,s.nombre_sede,s.cantidad_salas_sede
 from evento_academico e
 join sede s on s.id_sede=e.id_sede
-join sala sa on sa.id_sede=s.id_sede
-WHERE e.id_evento= 1
-GROUP by e.id_evento,e.nombre_evento,s.nombre_sede
-;
+WHERE e.id_evento= 1;
 
 -- saber cantidad de aforo que tiene un evento
 SELECT e.id_evento, e.nombre_evento, SUM(sa.aforo_sala) AS aforo_total
@@ -663,6 +701,3 @@ JOIN sede s ON s.id_sede = e.id_sede
 JOIN sala sa ON sa.id_sede = s.id_sede
 WHERE e.id_evento = 1
 GROUP BY e.id_evento, e.nombre_evento;
-
--- ------------------
--- 9. Consultas simples
