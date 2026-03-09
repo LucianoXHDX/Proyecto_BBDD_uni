@@ -721,7 +721,7 @@ INSERT INTO revision VALUES
 INSERT INTO actividad VALUES 
 (1, 1, 1, 'Taller de Ciberseguridad', 'Taller', 'Introducción a ciberseguridad', '2026-05-12', '09:00:00', '11:00:00'),
 (2, 1, 2, 'Presentación vulnerabilidad de datos', 'Presentación', 'Descripcion presentación', '2026-05-12', '11:30:00', '12:30:00'),
-(3, 1, 3, 'Panel de infromática ', 'Panel', 'Informática moderna con IA', '2026-05-12', '15:00:00', '16:30:00'),
+(3, 1, 3, 'Panel de infromática ', 'Panel', 'Informática moderna', '2026-05-12', '15:00:00', '16:30:00'),
 (4, 1, 1, 'Taller de Python', 'Taller', 'Introduccion a Python', '2026-05-13', '09:00:00', '11:00:00'),
 (5, 1, 2, 'Panel de IA', 'Panel', 'Discusion sobre IA', '2026-05-13', '11:30:00', '13:00:00'),
 (6, 1, 3, 'Mesa redonda ML', 'Mesa redonda','Tendencias en ML', '2026-05-13', '15:00:00', '16:30:00'),
